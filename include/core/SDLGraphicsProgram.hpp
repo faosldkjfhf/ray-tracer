@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/scene.hpp"
 #include <SDL3/SDL.h>
 
 class Window;
@@ -24,6 +25,8 @@ private:
 
   Window *_window;
   Renderer *_renderer;
+
+  Scene _scene;
 
   void input(float deltaTime);
   void update(float deltaTime);

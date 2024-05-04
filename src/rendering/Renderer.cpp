@@ -3,7 +3,7 @@
 #include "rendering/Window.hpp"
 
 Renderer::Renderer(const Window &window)
-    : _camera(window.getWidth(), window.getHeight()),
+    : // _camera(window.getWidth(), window.getHeight()),
       _shader("res/shaders/shadow_vert.glsl", "res/shaders/shadow_frag.glsl"),
       _window(&window) {}
 

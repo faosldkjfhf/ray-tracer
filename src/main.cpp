@@ -7,7 +7,7 @@
 #include "rendering/Window.hpp"
 
 int main(int argc, char *args[]) {
-  std::cout << "Player controls:\n"
+  /*std::cout << "Player controls:\n"
             << "  WASD - Move\n"
             << "  Space - Move up\n"
             << "  Q - Move down\n"
@@ -23,7 +23,7 @@ int main(int argc, char *args[]) {
             << "Debug controls:\n"
             << "  Z - Toggle wireframe\n"
             << "  X - Toggle depth map FBO\n"
-            << "Escape - Quit\n";
+            << "Escape - Quit\n";*/
 
   Window window(1600, 900);
   glCheckError("Window", 17);

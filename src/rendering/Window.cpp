@@ -21,9 +21,8 @@ Window::Window(int width, int height, const std::string &title)
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-  _window = SDL_CreateWindow(_title.c_str(), SDL_WINDOWPOS_CENTERED,
-                             SDL_WINDOWPOS_CENTERED, _width, _height,
-                             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+  _window =
+      SDL_CreateWindow(_title.c_str(), _width, _height, SDL_WINDOW_OPENGL);
   if (!_window) {
     std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
     exit(1);
@@ -37,7 +36,7 @@ Window::Window(int width, int height, const std::string &title)
   }
 
   // Initialize GLAD Library
-  if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
+  if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
     std::cerr << "Failed to initialize GLAD" << std::endl;
     exit(1);
   }

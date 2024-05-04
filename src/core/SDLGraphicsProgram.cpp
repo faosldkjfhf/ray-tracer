@@ -18,7 +18,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
   int mouseY = _window->getHeight() / 2;
   int mouseX = _window->getWidth() / 2;
   float moveSpeed = 20.0f * deltaTime;
-  Camera &camera = _renderer->getCamera();
+  // Camera &camera = _renderer->getCamera();
 
   // Event handler that handles various events in SDL
   // that are related to input and output
@@ -40,7 +40,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
       // Capture the change in the mouse position
       mouseX = e.motion.x;
       mouseY = e.motion.y;
-      camera.mouseLook(mouseX, mouseY);
+      // camera.mouseLook(mouseX, mouseY);
     default:
       break;
     }
@@ -49,6 +49,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
   // Retrieve keyboard state
   const Uint8 *state = SDL_GetKeyboardState(NULL);
 
+  /*
   // Camera
   // Update our position of the camera
   if (state[SDL_SCANCODE_W]) {
@@ -69,6 +70,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
   if (state[SDL_SCANCODE_Q]) {
     camera.moveDown(moveSpeed);
   }
+  */
 
   // Toggle polygon mode
   if (state[SDL_SCANCODE_Z]) {
@@ -84,12 +86,15 @@ void SDLGraphicsProgram::update(float deltaTime) {}
 void SDLGraphicsProgram::render() const { _renderer->render(); }
 
 void SDLGraphicsProgram::run() {
+  /*
   SDL_WarpMouseInWindow(_window->getWindow(), _window->getWidth() / 2,
-                        _window->getHeight() / 2);
+                        _window->getHeight() / 2);*/
   // Disable for grabbing
   // SDL_SetRelativeMouseMode(SDL_TRUE);
 
   _lastTime = SDL_GetTicks();
+
+  getOpenGLVersionInfo();
 
   while (!_quit) {
     Uint32 currentTime = SDL_GetTicks();
@@ -123,4 +128,11 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
             << "\n";
 }
 
-void SDLGraphicsProgram::init() {}
+void SDLGraphicsProgram::init() {
+  // set up quad
+  std::vector<MeshVertex> vertices = {
+
+  };
+
+  std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+}

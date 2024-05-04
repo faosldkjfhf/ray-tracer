@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Camera.hpp"
+// #include "core/Camera.hpp"
 
 #include "Shader.hpp"
 
@@ -15,11 +15,11 @@ public:
 
   void flipPolygonMode();
 
-  Camera &getCamera() { return _camera; }
+  // Camera &getCamera() { return _camera; }
   // Light &getLight() { return _light; }
 
 private:
-  Camera _camera;
+  // Camera _camera;
 
   Shader _shader;
   // Shader _lightShader;
