@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/scene.hpp"
+#include "core/Scene.hpp"
 #include <SDL3/SDL.h>
 
 class Window;

@@ -1,11 +1,11 @@
 #pragma once
-#include "core/object.hpp"
+
+#include "core/Object.hpp"
 #include <vector>
 
 class Scene {
 public:
-  Scene();
-  ~Scene();
+  Scene() = default;
 
 private:
   std::vector<Object> _objects;

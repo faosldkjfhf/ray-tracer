@@ -1,6 +1,7 @@
 #pragma once
 
 // #include "core/Camera.hpp"
+#include "rendering/Mesh.hpp"
 
 #include "Shader.hpp"
 
@@ -20,6 +21,8 @@ public:
 
 private:
   // Camera _camera;
+
+  Mesh _screenQuad;
 
   Shader _shader;
   // Shader _lightShader;

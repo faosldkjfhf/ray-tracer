@@ -2,6 +2,7 @@
 
 #include "core/Error.hpp"
 
+#include "rendering/MeshVertex.hpp"
 #include "rendering/Renderer.hpp"
 #include "rendering/Window.hpp"
 
@@ -131,7 +132,10 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
 void SDLGraphicsProgram::init() {
   // set up quad
   std::vector<MeshVertex> vertices = {
-
+      {{-1, -1, 0}, {0, 0}, {0, 0, 1}},
+      {{1, -1, 0}, {1, 0}, {0, 0, 1}},
+      {{1, 1, 0}, {1, 1}, {0, 0, 1}},
+      {{-1, 1, 0}, {0, 1}, {0, 0, 1}},
   };
 
   std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};

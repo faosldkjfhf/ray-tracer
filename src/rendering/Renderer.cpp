@@ -5,7 +5,18 @@
 Renderer::Renderer(const Window &window)
     : // _camera(window.getWidth(), window.getHeight()),
       _shader("res/shaders/shadow_vert.glsl", "res/shaders/shadow_frag.glsl"),
-      _window(&window) {}
+      _window(&window) {
+  std::vector<MeshVertex> vertices = {
+      {{-1, -1, 0}, {0, 0}, {0, 0, 1}},
+      {{1, -1, 0}, {1, 0}, {0, 0, 1}},
+      {{1, 1, 0}, {1, 1}, {0, 0, 1}},
+      {{-1, 1, 0}, {0, 1}, {0, 0, 1}},
+  };
+
+  std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
+
+  _screenQuad = {vertices, indices};
+}
 
 void Renderer::render() const {
   // Enable depth test and face culling (to fix shadow peter panning)
@@ -25,6 +36,8 @@ void Renderer::render() const {
   // Reset viewport
   glViewport(0, 0, _window->getWidth(), _window->getHeight());
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+  // Render the screen quad
 }
 
 void Renderer::flipPolygonMode() {
