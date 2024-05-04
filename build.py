@@ -18,7 +18,7 @@ LIBRARIES=""            # What libraries do we want to include
 if platform.system()=="Linux":
     ARGUMENTS="-D LINUX" # -D is a #define sent to preprocessor
     INCLUDE_DIR="-I ./include/ -I ./../common/thirdparty/glm/"
-    LIBRARIES="-lSDL2 -ldl"
+    LIBRARIES="-ldl `pkg-config --libs --cflags sdl3`"
 elif platform.system()=="Darwin":
     ARGUMENTS="-D MAC" # -D is a #define sent to the preprocessor.
     INCLUDE_DIR="-I ./include/ -I/Library/Frameworks/SDL2.framework/Headers -I./../common/thirdparty/old/glm"

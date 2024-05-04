@@ -26,17 +26,17 @@ void SDLGraphicsProgram::input(float deltaTime) {
   // Handle events on queue
   while (SDL_PollEvent(&e) != 0) {
     switch (e.type) {
-    case SDL_QUIT:
+    case SDL_EVENT_QUIT:
       std::cout << "Goodbye!" << std::endl;
       _quit = true;
       break;
-    case SDL_KEYDOWN:
+    case SDL_EVENT_KEY_DOWN:
       if (e.key.keysym.sym == SDLK_ESCAPE) {
         std::cout << "ESC: Goodbye!" << std::endl;
         _quit = true;
       }
       break;
-    case SDL_MOUSEMOTION:
+    case SDL_EVENT_MOUSE_MOTION:
       // Capture the change in the mouse position
       mouseX = e.motion.x;
       mouseY = e.motion.y;
