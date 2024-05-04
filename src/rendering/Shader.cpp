@@ -1,7 +1,6 @@
 #include "rendering/Shader.hpp"
 
 #include "core/util.hpp"
-#include "rendering/Light.hpp"
 
 #include <iostream>
 
@@ -128,13 +127,13 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
   }
 }
 
-void Shader::setLight(const std::string &name, const Light &light) const {
-  setVec3("u_PointLight.position", light.getTransform().getPosition());
-  setVec3("u_PointLight.color", light.color);
-  setFloat("u_PointLight.ambient", light.ambient);
-  setFloat("u_PointLight.diffuse", light.diffuse);
-  setFloat("u_PointLight.specular", light.specular);
-  setFloat("u_PointLight.constant", light.constant);
-  setFloat("u_PointLight.linear", light.linear);
-  setFloat("u_PointLight.quadratic", light.quadratic);
-}
+// void Shader::setLight(const std::string &name, const Light &light) const {
+//   setVec3("u_PointLight.position", light.getTransform().getPosition());
+//   setVec3("u_PointLight.color", light.color);
+//   setFloat("u_PointLight.ambient", light.ambient);
+//   setFloat("u_PointLight.diffuse", light.diffuse);
+//   setFloat("u_PointLight.specular", light.specular);
+//   setFloat("u_PointLight.constant", light.constant);
+//   setFloat("u_PointLight.linear", light.linear);
+//   setFloat("u_PointLight.quadratic", light.quadratic);
+// }

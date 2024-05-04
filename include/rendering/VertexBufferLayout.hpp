@@ -14,8 +14,6 @@
 
 #include <vector>
 
-#include "physics/SoftbodyMesh.hpp"
-
 struct MeshVertex;
 
 class VertexBufferLayout {
@@ -47,16 +45,6 @@ public:
   // bitangent b_x,b_y,b_z
   void createBufferLayout(std::vector<MeshVertex> &vertices,
                           std::vector<unsigned int> &indices);
-
-  // A softbody buffer layout needs the following attributes
-  // positions: x,y,z
-  // texcoords: s,t
-  // normals:  x,y,z
-  void createSoftBodyBufferLayout(std::vector<PointMass> &vertices,
-                                  std::vector<SoftbodyFace> &faces);
-
-  void updateSoftBodyBufferLayout(std::vector<PointMass> &vertices,
-                                  std::vector<SoftbodyFace> &faces);
 };
 
 #endif
