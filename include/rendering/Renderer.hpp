@@ -22,7 +22,7 @@ private:
   Camera _camera;
 
   Shader _shader;
-  Shader _lightShader;
+  // Shader _lightShader;
   // Shader _depthShader;
   // DepthMap _depthMap;
 
