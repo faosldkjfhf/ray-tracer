@@ -8,10 +8,12 @@ class Texture {
 public:
   enum TextureType { DIFFUSE, SPECULAR, NORMAL };
 
+  Texture() = default;
   Texture(const std::string &path, TextureType type);
+  Texture(int width, int height);
   ~Texture();
 
-  void load();
+  void loadFromFile();
   void bind(const Shader &shader, unsigned int slot = 0) const;
   void unbind() const;
 

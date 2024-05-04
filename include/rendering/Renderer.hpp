@@ -1,7 +1,8 @@
 #pragma once
 
-// #include "core/Camera.hpp"
 #include "rendering/Mesh.hpp"
+#include "rendering/Texture.hpp"
+#include "rendering/VertexBufferLayout.hpp"
 
 #include "Shader.hpp"
 
@@ -16,6 +17,8 @@ public:
 
   void flipPolygonMode();
 
+  void setupTexture();
+
   // Camera &getCamera() { return _camera; }
   // Light &getLight() { return _light; }
 
@@ -25,6 +28,9 @@ private:
   Mesh _screenQuad;
 
   Shader _shader;
+  VertexBufferLayout _screenQuadLayout;
+  Texture _texture;
+
   // Shader _lightShader;
   // Shader _depthShader;
   // DepthMap _depthMap;

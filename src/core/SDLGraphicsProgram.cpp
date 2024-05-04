@@ -74,7 +74,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
   */
 
   // Toggle polygon mode
-  if (state[SDL_SCANCODE_Z]) {
+  if (state[SDL_SCANCODE_TAB]) {
     SDL_Delay(200);
     _renderer->flipPolygonMode();
   }

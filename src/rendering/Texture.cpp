@@ -8,9 +8,22 @@
 Texture::Texture(const std::string &path, TextureType type)
     : _path(path), _type(type) {}
 
+Texture::Texture(int width, int height) {
+  glGenTextures(1, &_id);
+  glBindTexture(GL_TEXTURE_2D, _id);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+  glBindImageTexture(0, _id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+}
+
 Texture::~Texture() { glDeleteTextures(1, &_id); }
 
-void Texture::load() {
+void Texture::loadFromFile() {
   glGenTextures(1, &_id);
   glBindTexture(GL_TEXTURE_2D, _id);
 
@@ -46,14 +59,15 @@ void Texture::load() {
 
 void Texture::bind(const Shader &shader, unsigned int slot) const {
   glActiveTexture(GL_TEXTURE0 + slot);
-  std::string name = "u_Material.";
-  if (_type == TextureType::DIFFUSE) {
-    name += "diffuse";
-  } else if (_type == TextureType::SPECULAR) {
-    name += "specular";
-  } else if (_type == TextureType::NORMAL) {
-    name += "normal";
-  }
+  // std::string name = "u_Material.";
+  // if (_type == TextureType::DIFFUSE) {
+  //   name += "diffuse";
+  // } else if (_type == TextureType::SPECULAR) {
+  //   name += "specular";
+  // } else if (_type == TextureType::NORMAL) {
+  //   name += "normal";
+  // }
+  std::string name = "u_Texture";
   shader.setInt(name, slot);
   glBindTexture(GL_TEXTURE_2D, _id);
 }

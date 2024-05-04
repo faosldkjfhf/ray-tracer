@@ -4,8 +4,8 @@
 
 Renderer::Renderer(const Window &window)
     : // _camera(window.getWidth(), window.getHeight()),
-      _shader("res/shaders/shadow_vert.glsl", "res/shaders/shadow_frag.glsl"),
-      _window(&window) {
+      _shader("shaders/vert.glsl", "shaders/frag.glsl"),
+      _texture(window.getWidth(), window.getHeight()), _window(&window) {
   std::vector<MeshVertex> vertices = {
       {{-1, -1, 0}, {0, 0}, {0, 0, 1}},
       {{1, -1, 0}, {1, 0}, {0, 0, 1}},
@@ -16,6 +16,9 @@ Renderer::Renderer(const Window &window)
   std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
   _screenQuad = {vertices, indices};
+
+  _screenQuadLayout.createBufferLayout(_screenQuad._vertices,
+                                       _screenQuad._indices);
 }
 
 void Renderer::render() const {
@@ -38,6 +41,14 @@ void Renderer::render() const {
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
   // Render the screen quad
+  _shader.use();
+  _screenQuadLayout.bind();
+  _texture.bind(_shader, 0);
+
+  _shader.setVec2("u_Resolution", {_window->getWidth(), _window->getHeight()});
+
+  glDrawElements(GL_TRIANGLES, _screenQuad._indices.size(), GL_UNSIGNED_INT,
+                 nullptr);
 }
 
 void Renderer::flipPolygonMode() {
