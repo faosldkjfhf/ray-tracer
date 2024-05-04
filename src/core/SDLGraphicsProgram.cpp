@@ -216,29 +216,6 @@ void SDLGraphicsProgram::run() {
   }
 }
 
-Entity *SDLGraphicsProgram::addObject(MeshType type) {
-  Entity *entity = nullptr;
-  switch (type) {
-  case MeshType::CUBE:
-    entity = addObject(MeshGenerator::generateCube());
-    break;
-  case MeshType::ICOSAHEDRON:
-    entity = addObject(MeshGenerator::generateIcosahedron());
-    break;
-  case MeshType::BUNNY:
-    entity = addObject(BUNNY_PATH);
-    break;
-  case MeshType::BUNNY_REDUCED:
-    entity = addObject(BUNNY_REDUCED_PATH);
-    break;
-  default:
-    break;
-  }
-  entity->getTransform().setPosition(glm::vec3(0.0f, 5.0f, 0.0f));
-  entity->getObject()->setColor(glm::vec3(1.0f, 0.65f, 0.0f));
-  return entity;
-}
-
 void SDLGraphicsProgram::getOpenGLVersionInfo() {
   std::cout << "Vendor: " << glGetString(GL_VENDOR) << "\n";
   std::cout << "Renderer: " << glGetString(GL_RENDERER) << "\n";

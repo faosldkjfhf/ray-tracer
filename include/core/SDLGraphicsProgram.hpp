@@ -27,9 +27,6 @@ public:
     return _rootNode.addChild(std::forward<Args>(args)...);
   }
 
-  // Spawns an object of the specified type
-  Entity *addObject(MeshGenerator::MeshType type);
-
   void getOpenGLVersionInfo();
 
   // initializing a test scene
