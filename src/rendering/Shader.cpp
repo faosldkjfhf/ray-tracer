@@ -8,6 +8,11 @@ Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
   load(vertexPath, fragmentPath);
 }
 
+Shader::Shader(const std::string &computePath) {
+  std::string source = loadShaderAsString(computePath);
+  id = createComputeShaderProgram(source);
+}
+
 void Shader::load(const std::string &vertexPath,
                   const std::string &fragmentPath) {
   std::string vertexShaderSource = loadShaderAsString(vertexPath);

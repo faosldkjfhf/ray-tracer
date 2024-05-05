@@ -24,10 +24,11 @@ public:
 
 private:
   // Camera _camera;
+  Shader _shader;
+  Shader _computeShader;
 
   Mesh _screenQuad;
 
-  Shader _shader;
   VertexBufferLayout _screenQuadLayout;
   Texture _texture;
 
