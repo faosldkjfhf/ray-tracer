@@ -92,11 +92,10 @@ void SDLGraphicsProgram::run() {
                         _window->getHeight() / 2);*/
   // Disable for grabbing
   // SDL_SetRelativeMouseMode(SDL_TRUE);
-
-  _lastTime = SDL_GetTicks();
-
   getOpenGLVersionInfo();
 
+  _lastTime = SDL_GetTicks();
+  int frameCount = 0;
   while (!_quit) {
     Uint32 currentTime = SDL_GetTicks();
     Uint32 delta = std::max((unsigned int)1, currentTime - _lastTime);
@@ -116,6 +115,12 @@ void SDLGraphicsProgram::run() {
     //   SDL_Delay(16 - delta);
     // }
     // std::cout << "delta: " << delta << "ms\n";
+    if (frameCount > 100) {
+      std::cout << "FPS: " << 1000.0f / delta << std::endl;
+      frameCount = 0;
+    } else {
+      frameCount++;
+    }
 
     _window->swapBuffers();
   }

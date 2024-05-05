@@ -36,8 +36,8 @@ void Renderer::render() const {
   */
 
   _computeShader.use();
-  glCall(glDispatchCompute((GLuint)_window->getWidth(),
-                           (GLuint)_window->getHeight(), 1));
+  glCall(glDispatchCompute((GLuint)_window->getWidth() / 10,
+                           (GLuint)_window->getHeight() / 10, 1));
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
