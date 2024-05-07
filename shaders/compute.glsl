@@ -94,37 +94,38 @@ bool hitScene(Ray ray, out Hit hit) {
     return hitAnything;
 }
 
-vec3 color(Ray ray) {
+vec3 rayColor(Ray ray) {
+    vec3 unitDirection = normalize(ray.direction);
     Hit hit;
 
-    vec3 color = vec3(1.0);
+    vec3 finalColor = vec3(1.0);
     for (int i = 0; i < 10; i++) {
         if (hitScene(ray, hit)) {
             vec3 direction = randomOnHemisphere(hit.normal);
             ray.origin = hit.position;
             ray.direction = direction;
-            color += 0.25 * (hit.normal + 1.0);
+            finalColor *= 0.5 * (hit.normal + 1.0);
         } else {
-            vec3 unitDirection = normalize(ray.direction);
             float t = 0.5 * (unitDirection.y + 1.0);
-            vec3 result = (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
-            color *= result;
-            return color;
+            finalColor *= (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+            break;
         }
     }
 
-    return color / 10.0;
+    return finalColor;
 
-    vec3 unitDirection = normalize(ray.direction);
-    float t = 0.5 * (unitDirection.y + 1.0);
-    return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
+    // vec3 unitDirection = normalize(ray.direction);
+    // float t = 0.5 * (unitDirection.y + 1.0);
+    // return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
+#define PI 3.14159265358979323846
+#define SAMPLES 100
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
     float vfov = 90.0;
-    float theta = vfov * 3.14159265358979323846 / 180.0;
+    float theta = vfov * PI / 180.0;
     float h = tan(theta / 2.0);
     float viewportHeight = 2.0 * h;
     float viewportWidth = imageSize.x / imageSize.y * viewportHeight;
@@ -137,29 +138,19 @@ void main() {
     // Get the pixel's position in the image
     vec2 uv = (gl_GlobalInvocationID.xy) / imageSize.xy;
 
-    // Shoot a ray from the camera's position to the pixel on the screen
-    // Offset is for each work group
-    // Ray ray = Ray(origin,
-    //         upperLeftCorner + vec3(uv.x * viewportWidth, uv.y * viewportHeight, 0.0) - origin);
-
-    const int samples = 100;
-
     // anti-aliasing
     vec3 colorAccumulator = vec3(0.0);
-    for (int i = 0; i < samples; i++) {
+    for (int i = 0; i < SAMPLES; i++) {
         vec2 offset = vec2(rand(vec2(gl_GlobalInvocationID.xy + i)), rand(vec2(gl_GlobalInvocationID.xy + i + 1)));
-        vec2 uvSample = uv + offset / imageSize;
+        vec2 sampleUv = uv + offset / imageSize;
         Ray ray;
         ray.origin = origin;
-        ray.direction = upperLeftCorner + vec3(uvSample.x * viewportWidth, uvSample.y * viewportHeight, 0.0) - origin;
-        colorAccumulator += color(ray);
+        ray.direction = upperLeftCorner + vec3(sampleUv.x * viewportWidth, sampleUv.y * viewportHeight, 0.0) - origin;
+        // Get the color of the pixel at where the ray intersects the scene
+        colorAccumulator += rayColor(ray);
     }
 
-    vec3 pixelColor = colorAccumulator / float(samples);
-    // pixelColor = vec3(sqrt(pixelColor.r), sqrt(pixelColor.g), sqrt(pixelColor.b));
-
-    // Get the color of the pixel at where the ray intersects the scene
-    // vec3 pixelColor = color(ray);
+    vec3 pixelColor = colorAccumulator / SAMPLES;
 
     vec4 value = vec4(pixelColor, 1.0);
 

@@ -71,9 +71,6 @@ void SDLGraphicsProgram::input(float deltaTime) {
     camera.moveDown(moveSpeed);
   }
 
-  std::cout << "Camera position: " << camera.getPosition().x << ", "
-            << camera.getPosition().y << ", " << camera.getPosition().z << "\n";
-
   // Toggle polygon mode
   if (state[SDL_SCANCODE_TAB]) {
     SDL_Delay(200);
