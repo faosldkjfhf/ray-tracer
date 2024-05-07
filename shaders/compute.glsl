@@ -2,6 +2,8 @@
 
 layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 
+#define PI 3.14159265358979323846
+
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 
 struct Ray {
@@ -27,26 +29,57 @@ Sphere[2] spheres = Sphere[2](
         Sphere(vec3(0.0, -100.5, -1.0), 100.0)
     );
 
-float rand(vec2 co) {
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+uint stepRng(uint state) {
+    return state * 747796405 + 1;
 }
 
-vec3 randomInUnitSphere() {
-    vec3 p;
-    do {
-        p = 2.0 * vec3(rand(gl_GlobalInvocationID.xy)) - vec3(1.0);
-    } while (dot(p, p) >= 1.0);
-    return p;
+float stepRngFloat(inout uint state) {
+    state = stepRng(state);
+    uint word = ((state >> ((state >> 28) + 4)) ^ state) * 277803737;
+    word = (word >> 22) ^ word;
+    return float(state) / 4294967296.0f;
+}
+
+uint rngState = (600 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y);
+float rand() {
+    return stepRngFloat(rngState);
+}
+
+float rand(float min, float max) {
+    return min + (max - min) * rand();
+}
+
+vec3 randomOnUnitSphere() {
+    vec3 p = vec3(rand(-1.0, 1.0), rand(-1.0, 1.0), rand(-1.0, 1.0));
+    return normalize(p);
 }
 
 vec3 randomOnHemisphere(vec3 normal) {
-    vec3 inUnitSphere = normalize(randomInUnitSphere());
-    if (dot(inUnitSphere, normal) > 0.0) {
-        return inUnitSphere;
-    } else {
-        return -inUnitSphere;
-    }
+    vec3 inSphere = randomOnUnitSphere();
+    return dot(inSphere, normal) > 0.0 ? inSphere : -inSphere;
 }
+
+// float rand(vec2 co) {
+//     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
+// }
+//
+// vec3 randomInUnitSphere() {
+//     vec3 p;
+//     vec2
+//     do {
+//         p = 2.0 * vec3(rand(gl_GlobalInvocationID.xy)) - vec3(1.0);
+//     } while (dot(p, p) >= 1.0);
+//     return p;
+// }
+//
+// vec3 randomOnHemisphere(vec3 normal) {
+//     vec3 inUnitSphere = normalize(randomInUnitSphere());
+//     if (dot(inUnitSphere, normal) > 0.0) {
+//         return inUnitSphere;
+//     } else {
+//         return -inUnitSphere;
+//     }
+// }
 
 bool intersectSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
     vec3 oc = sphere.center - ray.origin;
@@ -94,18 +127,19 @@ bool hitScene(Ray ray, out Hit hit) {
     return hitAnything;
 }
 
+#define MAX_BOUNCES 5
 vec3 rayColor(Ray ray) {
-    vec3 unitDirection = normalize(ray.direction);
     Hit hit;
 
     vec3 finalColor = vec3(1.0);
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < MAX_BOUNCES; i++) {
         if (hitScene(ray, hit)) {
             vec3 direction = randomOnHemisphere(hit.normal);
             ray.origin = hit.position;
             ray.direction = direction;
             finalColor *= 0.5 * (hit.normal + 1.0);
         } else {
+            vec3 unitDirection = normalize(ray.direction);
             float t = 0.5 * (unitDirection.y + 1.0);
             finalColor *= (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
             break;
@@ -113,13 +147,8 @@ vec3 rayColor(Ray ray) {
     }
 
     return finalColor;
-
-    // vec3 unitDirection = normalize(ray.direction);
-    // float t = 0.5 * (unitDirection.y + 1.0);
-    // return (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
 }
 
-#define PI 3.14159265358979323846
 #define SAMPLES 100
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
@@ -129,11 +158,12 @@ void main() {
     float h = tan(theta / 2.0);
     float viewportHeight = 2.0 * h;
     float viewportWidth = imageSize.x / imageSize.y * viewportHeight;
+    float focalLength = 1.0;
 
     // Position of the camera
     vec3 origin = u_CameraPosition;
     // Upper left corner of the viewport, (0,0) is at top left corner
-    vec3 upperLeftCorner = origin + vec3(-viewportWidth / 2.0, -viewportHeight / 2.0, -1.0);
+    vec3 upperLeftCorner = origin - vec3(viewportWidth / 2.0, viewportHeight / 2.0, focalLength);
 
     // Get the pixel's position in the image
     vec2 uv = (gl_GlobalInvocationID.xy) / imageSize.xy;
@@ -141,7 +171,7 @@ void main() {
     // anti-aliasing
     vec3 colorAccumulator = vec3(0.0);
     for (int i = 0; i < SAMPLES; i++) {
-        vec2 offset = vec2(rand(vec2(gl_GlobalInvocationID.xy + i)), rand(vec2(gl_GlobalInvocationID.xy + i + 1)));
+        vec2 offset = vec2(rand(), rand());
         vec2 sampleUv = uv + offset / imageSize;
         Ray ray;
         ray.origin = origin;
@@ -151,6 +181,12 @@ void main() {
     }
 
     vec3 pixelColor = colorAccumulator / SAMPLES;
+
+    // Ray ray;
+    // ray.origin = origin;
+    // ray.direction = upperLeftCorner + vec3(uv.x * viewportWidth, uv.y * viewportHeight, 0.0) - origin;
+    //
+    // vec3 pixelColor = rayColor(ray);
 
     vec4 value = vec4(pixelColor, 1.0);
 
