@@ -1,5 +1,8 @@
 #pragma once
 
+#include "core/Scene.hpp"
+#include "core/Camera.hpp"
+
 #include "rendering/Mesh.hpp"
 #include "rendering/Texture.hpp"
 #include "rendering/VertexBufferLayout.hpp"
@@ -13,22 +16,22 @@ class Renderer {
 public:
   Renderer(const Window &window);
 
-  void render() const;
+  void render(const Scene &scene) const;
 
   void flipPolygonMode();
 
   void setupTexture();
 
-  // Camera &getCamera() { return _camera; }
+  Camera &getCamera() { return _camera; }
   // Light &getLight() { return _light; }
 
 private:
-  // Camera _camera;
+  Camera _camera;
+
   Shader _shader;
   Shader _computeShader;
 
   Mesh _screenQuad;
-
   VertexBufferLayout _screenQuadLayout;
   Texture _texture;
 

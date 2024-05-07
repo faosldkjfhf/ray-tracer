@@ -12,13 +12,11 @@
 
 #include "glm/glm.hpp"
 
-#include "Transform.hpp"
-
 class Camera {
 public:
   // Constructor to create a camera
-  Camera(int windowWidth, int windowHeight, float fov = 90.0f, float nearPlane = 0.1f,
-         float farPlane = 1000.0f);
+  Camera(int windowWidth, int windowHeight, float fov = 90.0f,
+         float nearPlane = 0.1f, float farPlane = 1000.0f);
 
   // Return a 'view' matrix with our camera transformation applied.
   glm::mat4 getViewMatrix() const;
@@ -38,14 +36,14 @@ public:
   void lookAt(const glm::vec3 &target);
 
   // Get the position of the camera
-  Transform &getTransform();
-  const Transform &getTransform() const;
+  glm::vec3 &getPosition() { return _position; }
+  const glm::vec3 &getPosition() const { return _position; }
 
 private:
   // Track the old mouse position
   glm::vec2 _oldMousePosition;
   // Where is our camera positioned
-  Transform _transform;
+  glm::vec3 _position{0.0f, 0.0f, 0.0f};
   // What direction is the camera looking
   glm::vec3 _viewDirection;
   // Which direction is 'up' in our world

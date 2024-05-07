@@ -12,7 +12,6 @@ public:
 
 private:
   Transform _transform;
-  float _t0;
 
   Mesh _mesh;
 };

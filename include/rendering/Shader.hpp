@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include "core/Scene.hpp"
+
 class Light;
 
 class Shader {
@@ -33,5 +35,6 @@ public:
   void setMat2(const std::string &name, const glm::mat2 &mat) const;
   void setMat3(const std::string &name, const glm::mat3 &mat) const;
   void setMat4(const std::string &name, const glm::mat4 &mat) const;
+  void setScene(const std::string &name, const Scene &scene) const;
   // void setLight(const std::string &name, const Light &light) const;
 };

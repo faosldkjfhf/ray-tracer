@@ -43,41 +43,32 @@ void Camera::mouseLook(int mouseX, int mouseY) {
   _oldMousePosition = newMousePosition;
 }
 
-void Camera::moveForward(float speed) {
-  _transform.translate(_viewDirection * speed);
-}
+void Camera::moveForward(float speed) { _position += _viewDirection * speed; }
 
-void Camera::moveBackward(float speed) {
-  _transform.translate(-_viewDirection * speed);
-}
+void Camera::moveBackward(float speed) { _position -= _viewDirection * speed; }
 
 void Camera::moveLeft(float speed) {
   // Compute the rightVector
   glm::vec3 rightVector = glm::cross(_viewDirection, _upVector);
-  _transform.translate(-rightVector * speed);
+  _position -= rightVector * speed;
 }
 
 void Camera::moveRight(float speed) {
   // Compute the rightVector
   glm::vec3 rightVector = glm::cross(_viewDirection, _upVector);
-  _transform.translate(rightVector * speed);
+  _position += rightVector * speed;
 }
 
-void Camera::moveUp(float speed) { _transform.translate(_upVector * speed); }
+void Camera::moveUp(float speed) { _position += _upVector * speed; }
 
-void Camera::moveDown(float speed) { _transform.translate(-_upVector * speed); }
+void Camera::moveDown(float speed) { _position -= _upVector * speed; }
 
 void Camera::lookAt(const glm::vec3 &target) {
-  _viewDirection = glm::normalize(target - _transform.getPosition());
+  _viewDirection = glm::normalize(target - _position);
 }
-
-Transform &Camera::getTransform() { return _transform; }
-
-const Transform &Camera::getTransform() const { return _transform; }
 
 glm::mat4 Camera::getViewMatrix() const {
   // Think about the second argument and why that is
   // setup as it is.
-  glm::vec3 position = _transform.getPosition();
-  return glm::lookAt(position, position + _viewDirection, _upVector);
+  return glm::lookAt(_position, _position + _viewDirection, _upVector);
 }

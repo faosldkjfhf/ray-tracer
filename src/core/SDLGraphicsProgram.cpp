@@ -18,8 +18,8 @@ SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
 void SDLGraphicsProgram::input(float deltaTime) {
   int mouseY = _window->getHeight() / 2;
   int mouseX = _window->getWidth() / 2;
-  float moveSpeed = 20.0f * deltaTime;
-  // Camera &camera = _renderer->getCamera();
+  float moveSpeed = 5.0f * deltaTime;
+  Camera &camera = _renderer->getCamera();
 
   // Event handler that handles various events in SDL
   // that are related to input and output
@@ -50,7 +50,6 @@ void SDLGraphicsProgram::input(float deltaTime) {
   // Retrieve keyboard state
   const Uint8 *state = SDL_GetKeyboardState(NULL);
 
-  /*
   // Camera
   // Update our position of the camera
   if (state[SDL_SCANCODE_W]) {
@@ -71,7 +70,9 @@ void SDLGraphicsProgram::input(float deltaTime) {
   if (state[SDL_SCANCODE_Q]) {
     camera.moveDown(moveSpeed);
   }
-  */
+
+  std::cout << "Camera position: " << camera.getPosition().x << ", "
+            << camera.getPosition().y << ", " << camera.getPosition().z << "\n";
 
   // Toggle polygon mode
   if (state[SDL_SCANCODE_TAB]) {
@@ -84,7 +85,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
 
 void SDLGraphicsProgram::update(float deltaTime) {}
 
-void SDLGraphicsProgram::render() const { _renderer->render(); }
+void SDLGraphicsProgram::render() const { _renderer->render(_scene); }
 
 void SDLGraphicsProgram::run() {
   /*
@@ -134,4 +135,7 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
             << "\n";
 }
 
-void SDLGraphicsProgram::init() {}
+void SDLGraphicsProgram::init() {
+  // Create some spheres in the scene
+  _scene.spheres.push_back({{0, 0, -1}, 0.5});
+}

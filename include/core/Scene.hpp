@@ -1,12 +1,9 @@
 #pragma once
 
 #include "core/Object.hpp"
+#include "core/Sphere.hpp"
 #include <vector>
 
-class Scene {
-public:
-  Scene() = default;
-
-private:
-  std::vector<Object> _objects;
+struct Scene {
+  std::vector<Sphere> spheres;
 };

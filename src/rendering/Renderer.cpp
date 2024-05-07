@@ -5,7 +5,7 @@
 #include "rendering/Window.hpp"
 
 Renderer::Renderer(const Window &window)
-    : // _camera(window.getWidth(), window.getHeight()),
+    : _camera(window.getWidth(), window.getHeight()),
       _shader("shaders/vert.glsl", "shaders/frag.glsl"),
       _computeShader("shaders/compute.glsl"),
       _texture(window.getWidth(), window.getHeight()), _window(&window) {
@@ -28,7 +28,7 @@ Renderer::Renderer(const Window &window)
   _texture.bind(_shader, 0);
 }
 
-void Renderer::render() const {
+void Renderer::render(const Scene &scene) const {
   // Enable depth test and face culling (to fix shadow peter panning)
   /*
   glEnable(GL_DEPTH_TEST);
@@ -36,6 +36,10 @@ void Renderer::render() const {
   */
 
   _computeShader.use();
+
+  // Pass in scene data as uniforms
+  // _computeShader.setScene("u_Spheres", scene);
+  _computeShader.setVec3("u_CameraPosition", _camera.getPosition());
   glCall(glDispatchCompute((GLuint)_window->getWidth() / 10,
                            (GLuint)_window->getHeight() / 10, 1));
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

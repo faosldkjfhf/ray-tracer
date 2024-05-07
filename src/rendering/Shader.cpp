@@ -132,6 +132,17 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
   }
 }
 
+void Shader::setScene(const std::string &name, const Scene &scene) const {
+  GLint loc = glGetUniformLocation(id, name.c_str());
+  if (loc >= 0) {
+    // Pass in the spheres
+    glUniform4fv(loc, scene.spheres.size(), &scene.spheres[0].center[0]);
+    std::cout << "Set " << name << " to " << scene.spheres.size() << " spheres\n";
+  } else {
+    std::cout << "Could not find " << name << ", maybe a mispelling?\n";
+  }
+}
+
 // void Shader::setLight(const std::string &name, const Light &light) const {
 //   setVec3("u_PointLight.position", light.getTransform().getPosition());
 //   setVec3("u_PointLight.color", light.color);
