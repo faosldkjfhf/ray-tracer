@@ -29,15 +29,11 @@ Sphere[2] spheres = Sphere[2](
         Sphere(vec3(0.0, -100.5, -1.0), 100.0)
     );
 
-uint stepRng(uint state) {
-    return state * 747796405 + 1;
-}
-
 float stepRngFloat(inout uint state) {
-    state = stepRng(state);
+    state = state * 747796405 + 2891336453;
     uint word = ((state >> ((state >> 28) + 4)) ^ state) * 277803737;
     word = (word >> 22) ^ word;
-    return float(state) / 4294967296.0f;
+    return float(word) / 4294967296.0f;
 }
 
 uint rngState = (600 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y);
