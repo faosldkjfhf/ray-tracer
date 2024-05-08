@@ -3,8 +3,11 @@
 layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 
 #define PI 3.14159265358979323846
+#define MAX_BOUNCES 10
 
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
+layout(location = 0) uniform vec3 u_CameraPosition;
+
 
 struct Ray {
     vec3 origin;
@@ -21,8 +24,6 @@ struct Hit {
     vec3 position;
     vec3 normal;
 };
-
-uniform vec3 u_CameraPosition;
 
 Sphere[2] spheres = Sphere[2](
         Sphere(vec3(0.0, 0.0, -1.0), 0.5),
@@ -54,28 +55,6 @@ vec3 randomOnHemisphere(vec3 normal) {
     vec3 inSphere = randomOnUnitSphere();
     return dot(inSphere, normal) > 0.0 ? inSphere : -inSphere;
 }
-
-// float rand(vec2 co) {
-//     return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-// }
-//
-// vec3 randomInUnitSphere() {
-//     vec3 p;
-//     vec2
-//     do {
-//         p = 2.0 * vec3(rand(gl_GlobalInvocationID.xy)) - vec3(1.0);
-//     } while (dot(p, p) >= 1.0);
-//     return p;
-// }
-//
-// vec3 randomOnHemisphere(vec3 normal) {
-//     vec3 inUnitSphere = normalize(randomInUnitSphere());
-//     if (dot(inUnitSphere, normal) > 0.0) {
-//         return inUnitSphere;
-//     } else {
-//         return -inUnitSphere;
-//     }
-// }
 
 bool intersectSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
     vec3 oc = sphere.center - ray.origin;
@@ -123,7 +102,6 @@ bool hitScene(Ray ray, out Hit hit) {
     return hitAnything;
 }
 
-#define MAX_BOUNCES 5
 vec3 rayColor(Ray ray) {
     Hit hit;
 
@@ -167,7 +145,7 @@ void main() {
     // anti-aliasing
     vec3 colorAccumulator = vec3(0.0);
     for (int i = 0; i < SAMPLES; i++) {
-        vec2 offset = vec2(rand(), rand());
+        vec2 offset = vec2(rand(-0.5, 0.5), rand(-0.5, 0.5));
         vec2 sampleUv = uv + offset / imageSize;
         Ray ray;
         ray.origin = origin;
@@ -177,12 +155,6 @@ void main() {
     }
 
     vec3 pixelColor = colorAccumulator / SAMPLES;
-
-    // Ray ray;
-    // ray.origin = origin;
-    // ray.direction = upperLeftCorner + vec3(uv.x * viewportWidth, uv.y * viewportHeight, 0.0) - origin;
-    //
-    // vec3 pixelColor = rayColor(ray);
 
     vec4 value = vec4(pixelColor, 1.0);
 

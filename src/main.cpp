@@ -6,7 +6,8 @@
 #include "rendering/Renderer.hpp"
 #include "rendering/Window.hpp"
 
-int main(int argc, char *args[]) {
+int main(int argc, char *args[])
+{
   /*std::cout << "Player controls:\n"
             << "  WASD - Move\n"
             << "  Space - Move up\n"

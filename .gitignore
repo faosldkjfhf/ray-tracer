@@ -2,3 +2,4 @@
 project
 compile_commands.json
 *.exe
+.vscode
