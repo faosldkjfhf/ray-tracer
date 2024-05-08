@@ -26,14 +26,17 @@ elif platform.system()=="Darwin":
 elif platform.system()=="Windows":
     COMPILER="g++ -std=c++17" # Note we use g++ here as it is more likely what you have
     ARGUMENTS="-D MINGW -std=c++17 -static-libgcc -static-libstdc++"
-    INCLUDE_DIR="-I./include/ -I./../common/thirdparty/old/glm/"
+    INCLUDE_DIR="-I./../SDL/include -I./include/ -I./../common/thirdparty/old/glm/"
     EXECUTABLE="project.exe"
-    LIBRARIES="-lmingw32 -lSDL2main -lSDL2 -mwindows"
+    LIBRARIES="-L./../build/ -lSDL3 -mwindows"
 # (2)=================== Platform specific configuration ===================== #
 
 # (3)====================== Building the Executable ========================== #
 # Build a string of our compile commands that we run in the terminal
-compileString="bear -- "+COMPILER+" "+ARGUMENTS+" -o "+EXECUTABLE+" "+" "+INCLUDE_DIR+" "+SOURCE+" "+LIBRARIES
+compileString = ""
+if platform.system() == "Linux":
+    compileString = "bear -- "
+compileString+=COMPILER+" "+ARGUMENTS+" -o "+EXECUTABLE+" "+" "+INCLUDE_DIR+" "+SOURCE+" "+LIBRARIES
 # Print out the compile string
 # This is the command you can type
 print("============v (Command running on terminal) v===========================")
