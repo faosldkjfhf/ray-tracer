@@ -4,17 +4,20 @@
 
 #include <iostream>
 
-Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath) {
+Shader::Shader(const std::string &vertexPath, const std::string &fragmentPath)
+{
   load(vertexPath, fragmentPath);
 }
 
-Shader::Shader(const std::string &computePath) {
+Shader::Shader(const std::string &computePath)
+{
   std::string source = loadShaderAsString(computePath);
   id = createComputeShaderProgram(source);
 }
 
 void Shader::load(const std::string &vertexPath,
-                  const std::string &fragmentPath) {
+                  const std::string &fragmentPath)
+{
   std::string vertexShaderSource = loadShaderAsString(vertexPath);
   std::string fragmentShaderSource = loadShaderAsString(fragmentPath);
 
@@ -23,124 +26,174 @@ void Shader::load(const std::string &vertexPath,
 
 void Shader::use() const { glUseProgram(id); }
 
-void Shader::setBool(const std::string &name, bool value) const {
+void Shader::setBool(const std::string &name, bool value) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform1i(loc, (int)value);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setInt(const std::string &name, int value) const {
+void Shader::setInt(const std::string &name, int value) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform1i(loc, value);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setFloat(const std::string &name, float value) const {
+void Shader::setFloat(const std::string &name, float value) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform1f(loc, value);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setVec2(const std::string &name, const glm::vec2 &value) const {
+void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform2fv(loc, 1, &value[0]);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setVec2(const std::string &name, float x, float y) const {
+void Shader::setVec2(const std::string &name, float x, float y) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform2f(loc, x, y);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setVec3(const std::string &name, const glm::vec3 &value) const {
+void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform3fv(loc, 1, &value[0]);
-  } else {
+  }
+  else
+  {
     // std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setVec3(const std::string &name, float x, float y, float z) const {
+void Shader::setVec3(const std::string &name, float x, float y, float z) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform3f(loc, x, y, z);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setVec4(const std::string &name, const glm::vec4 &value) const {
+void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform4fv(loc, 1, &value[0]);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
 void Shader::setVec4(const std::string &name, float x, float y, float z,
-                     float w) const {
+                     float w) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniform4f(loc, x, y, z, w);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const {
+void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniformMatrix2fv(loc, 1, GL_FALSE, &mat[0][0]);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const {
+void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniformMatrix3fv(loc, 1, GL_FALSE, &mat[0][0]);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const {
+void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
+{
   GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
+  if (loc >= 0)
+  {
     glUniformMatrix4fv(loc, 1, GL_FALSE, &mat[0][0]);
-  } else {
+  }
+  else
+  {
     std::cout << "Could not find " << name << ", maybe a mispelling?\n";
   }
 }
 
-void Shader::setScene(const std::string &name, const Scene &scene) const {
-  GLint loc = glGetUniformLocation(id, name.c_str());
-  if (loc >= 0) {
-    // Pass in the spheres
-    glUniform4fv(loc, scene.spheres.size(), &scene.spheres[0].center[0]);
-    std::cout << "Set " << name << " to " << scene.spheres.size() << " spheres\n";
-  } else {
-    std::cout << "Could not find " << name << ", maybe a mispelling?\n";
-  }
+void Shader::setScene(const Scene &scene) const
+{
+  // TODO: implement a SSBO
+  // 1. Not sure if usage flag is correct in glBufferData
+  // 2. Need to abstract out the ssbo into maybe a buffer class?
+  GLuint ssbo;
+  glGenBuffers(1, &ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, scene.spheres.size() * (4 * sizeof(float)), scene.spheres.data(), GL_STATIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 }
 
 // void Shader::setLight(const std::string &name, const Light &light) const {

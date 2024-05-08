@@ -8,7 +8,8 @@ Renderer::Renderer(const Window &window)
     : _camera(window.getWidth(), window.getHeight()),
       _shader("shaders/vert.glsl", "shaders/frag.glsl"),
       _computeShader("shaders/compute.glsl"),
-      _texture(window.getWidth(), window.getHeight()), _window(&window) {
+      _texture(window.getWidth(), window.getHeight()), _window(&window)
+{
   std::vector<MeshVertex> vertices = {
       {{-1, -1, 0}, {0, 0}, {0, 0, 1}},
       {{1, -1, 0}, {1, 0}, {0, 0, 1}},
@@ -28,7 +29,8 @@ Renderer::Renderer(const Window &window)
   _texture.bind(_shader, 0);
 }
 
-void Renderer::render(const Scene &scene) const {
+void Renderer::render(const Scene &scene) const
+{
   // Enable depth test and face culling (to fix shadow peter panning)
   /*
   glEnable(GL_DEPTH_TEST);
@@ -38,7 +40,7 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.use();
 
   // Pass in scene data as uniforms
-  // _computeShader.setScene("u_Spheres", scene);
+  _computeShader.setScene(scene);
   _computeShader.setVec3("u_CameraPosition", _camera.getPosition());
   glCall(glDispatchCompute((GLuint)_window->getWidth() / 10,
                            (GLuint)_window->getHeight() / 10, 1));
@@ -69,6 +71,7 @@ void Renderer::render(const Scene &scene) const {
                  nullptr);
 }
 
-void Renderer::flipPolygonMode() {
+void Renderer::flipPolygonMode()
+{
   _polygonMode = _polygonMode == GL_FILL ? GL_LINE : GL_FILL;
 }

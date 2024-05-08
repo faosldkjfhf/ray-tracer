@@ -8,10 +8,15 @@ layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
 
-
 struct Ray {
     vec3 origin;
     vec3 direction;
+};
+
+struct Material {
+    vec3 color;
+    vec3 emissionColor;
+    float emissionStrength;
 };
 
 struct Sphere {
@@ -25,10 +30,9 @@ struct Hit {
     vec3 normal;
 };
 
-Sphere[2] spheres = Sphere[2](
-        Sphere(vec3(0.0, 0.0, -1.0), 0.5),
-        Sphere(vec3(0.0, -100.5, -1.0), 100.0)
-    );
+layout(std430, binding = 1) buffer SphereBuffer {
+    Sphere spheres[];
+};
 
 float stepRngFloat(inout uint state) {
     state = state * 747796405 + 2891336453;
