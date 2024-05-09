@@ -86,7 +86,9 @@ void SDLGraphicsProgram::update(float deltaTime) {}
 
 void SDLGraphicsProgram::render() const {
   _spheresBuffer.bind();
-  _triangleBuffer.bind();
+  // _triangleBuffer.bind();
+  _vertexBuffer.bind();
+  _faceBuffer.bind();
   _materialBuffer.bind();
   _renderer->render(_scene);
 }
@@ -141,29 +143,40 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
 
 void SDLGraphicsProgram::init() {
   // Create some spheres in the scene
-  _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 2});
+  _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
   // _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5, 3});
   // _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 2});
   _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
 
   // Create some triangles in the scene
-  _scene.triangles.push_back(
-      {{-0.5f, -0.5f, -2.0f}, {0.5f, -0.5f, -2.0f}, {0.0f, 0.5f, -2.0f}, 3});
-  _scene.triangles.push_back(
-      {{1.0f, -0.5f, -1.5f}, {0.5f, -0.5f, -2.0f}, {1.0f, 0.5f, -2.0f}, 0});
+  // _scene.triangles.push_back(
+  //     {{-0.5f, -0.5f, -2.0f}, {0.5f, -0.5f, -1.0f}, {0.0f, 0.5f, -2.0f}, 3});
+  // _scene.triangles.push_back(
+  //     {{1.0f, -0.5f, -1.5f}, {0.5f, -0.5f, -2.0f}, {1.0f, 0.5f, -2.0f}, 0});
 
   // 0. red, 1. green, 2. blue, 3. white light
-  _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, glm::vec3(0.0f), 0.0f});
-  _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, glm::vec3(0.0f), 0.0f});
-  _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, glm::vec3(0.0f), 0.0f});
-  _scene.materials.push_back({glm::vec3(0.0f), glm::vec3(1.0f), 5.0f});
+  _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
+  _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, MaterialType::LAMBERTIAN});
+  _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, MaterialType::LAMBERTIAN});
+  _scene.materials.push_back({glm::vec3(1.0f), MaterialType::LIGHT});
+
+  // Create some objects in the scene
+  Object cube("res/models/cube/cube.obj");
+  cube.getTransform().setPosition(1.0f, 1.0f, -3.0f);
+  _scene.objects.push_back(cube);
+
+  _scene.update();
 
   // Create the storage buffers
   _spheresBuffer.createStorageBuffer(_scene.spheres, GL_STATIC_DRAW, 1);
-  _triangleBuffer.createStorageBuffer(_scene.triangles, GL_STATIC_DRAW, 2);
-  _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 3);
+  // _triangleBuffer.createStorageBuffer(_scene.triangles, GL_STATIC_DRAW, 2);
+  _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 2);
+  _faceBuffer.createStorageBuffer(_scene.getFaces(), GL_STATIC_DRAW, 3);
+  _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 4);
 
   _spheresBuffer.updateStorageBuffer(_scene.spheres);
-  _triangleBuffer.updateStorageBuffer(_scene.triangles);
+  // _triangleBuffer.updateStorageBuffer(_scene.triangles);
+  _vertexBuffer.updateStorageBuffer(_scene.getVertices());
+  _faceBuffer.updateStorageBuffer(_scene.getFaces());
   _materialBuffer.updateStorageBuffer(_scene.materials);
 }

@@ -8,61 +8,74 @@ layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
 
-uniform int u_NumSpheres;
-uniform int u_NumTriangles;
-
 struct Ray {
     vec3 origin;
     vec3 direction;
 };
 
+#define LAMBERTIAN 0
+#define METAL 1
+#define GLASS 2
+#define LIGHT 3
+
 struct Material {
-    vec3 color;
-    vec3 emissionColor;
-    float emissionStrength;
+    vec3 albedo;
+    uint type;
 };
 
 struct Sphere {
     vec3 center;
     float radius;
-    int material;
+    uint materialIdx;
 };
 
 struct Triangle {
     vec3 v0;
     vec3 v1;
     vec3 v2;
-    int material;
+    uint materialIdx;
 };
 
-struct Mesh {
-    uint vertexOffset;
-    uint vertexCount;
-    uint triangleOffset;
-    uint triangleCount;
+struct Face {
+    uint v0;
+    uint v1;
+    uint v2;
+    uint materialIdx;
 };
+
+// struct Mesh {
+//     uint vertexOffset;
+//     uint vertexCount;
+//     uint faceOffset;
+//     uint faceCount;
+//     uint material;
+// };
 
 struct Hit {
     float t;
     vec3 position;
     vec3 normal;
     bool frontFace;
-    Material material;
+    uint materialIdx;
 };
 
 layout(std430, binding = 1) buffer SphereBuffer {
     Sphere spheres[];
 };
 
-// layout (std430, binding = 2) buffer VertexBuffer {
-//     vec3 vertices[];
+// layout(std430, binding = 2) buffer TriangleBuffer {
+//     Triangle triangles[];
 // };
 
-layout(std430, binding = 2) buffer TriangleBuffer {
-    Triangle triangles[];
+layout(std430, binding = 2) buffer VertexBuffer {
+    vec3 vertices[];
 };
 
-layout(std430, binding = 3) buffer MaterialBuffer {
+layout(std430, binding = 3) buffer FaceBuffer {
+    Face faces[];
+};
+
+layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
 };
 
@@ -96,6 +109,13 @@ vec3 randomOnHemisphere(vec3 normal) {
     return dot(inSphere, normal) > 0.0 ? inSphere : -inSphere;
 }
 
+// Random value in normal distribution with mean 0 and standard deviation 1
+float randomNormalDistribution() {
+    float theta = 2.0 * PI * rand();
+    float rho = sqrt(-2.0 * log(rand()));
+    return rho * cos(theta);
+}
+
 void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.frontFace = dot(ray.direction, outwardNormal) < 0.0;
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
@@ -124,7 +144,7 @@ bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
 
     hit.t = t;
     hit.position = ray.origin + ray.direction * t;
-    hit.material = materials[sphere.material];
+    hit.materialIdx = sphere.materialIdx;
     hit.normal = (hit.position - sphere.center) / sphere.radius;
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
@@ -156,7 +176,44 @@ bool hitTriangle(Ray ray, Triangle triangle, float tMin, float tMax, out Hit hit
         hit.t = t;
         hit.position = intersectPoint;
         hit.normal = normal;
-        hit.material = materials[triangle.material];
+        hit.materialIdx = triangle.materialIdx;
+        setHitFaceNormal(hit, ray, hit.normal);
+        return true;
+    }
+
+    return false;
+}
+
+bool hitFace(Ray ray, Face face, float tMin, float tMax, out Hit hit) {
+    // Check if ray intersects the plane of the triangle
+    vec3 v0 = vertices[face.v0];
+    vec3 v1 = vertices[face.v1];
+    vec3 v2 = vertices[face.v2];
+    vec3 v0v1 = v1 - v0;
+    vec3 v1v2 = v2 - v1;
+    vec3 v2v0 = v0 - v2;
+    vec3 normal = cross(v0v1, v1v2);
+
+    float nDotV0MinusO = dot(normal, v0 - ray.origin);
+    float nDotD = dot(normal, ray.direction);
+    float t = nDotV0MinusO / nDotD;
+    vec3 intersectPoint = ray.origin + ray.direction * t;
+
+    if (t < tMin || t > tMax) {
+        return false;
+    }
+
+    // Check if the intersection point is inside the triangle
+    float dotCross0 = dot(cross(v0v1, intersectPoint - v0), normal);
+    float dotCross1 = dot(cross(v1v2, intersectPoint - v1), normal);
+    float dotCross2 = dot(cross(v2v0, intersectPoint - v2), normal);
+
+    if ((dotCross0 >= 0.0 && dotCross1 >= 0.0 && dotCross2 >= 0.0) ||
+            (dotCross0 <= 0.0 && dotCross1 <= 0.0 && dotCross2 <= 0.0)) {
+        hit.t = t;
+        hit.position = intersectPoint;
+        hit.normal = normal;
+        hit.materialIdx = face.materialIdx;
         setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
@@ -180,8 +237,16 @@ bool hitScene(Ray ray, out Hit hit) {
         }
     }
 
-    for (int i = 0; i < triangles.length(); i++) {
-        if (hitTriangle(ray, triangles[i], tMin, closest, tempHit)) {
+    // for (int i = 0; i < triangles.length(); i++) {
+    //     if (hitTriangle(ray, triangles[i], tMin, closest, tempHit)) {
+    //         hitAnything = true;
+    //         closest = tempHit.t;
+    //         hit = tempHit;
+    //     }
+    // }
+
+    for (int i = 0; i < faces.length(); i++) {
+        if (hitFace(ray, faces[i], tMin, closest, tempHit)) {
             hitAnything = true;
             closest = tempHit.t;
             hit = tempHit;
@@ -191,24 +256,34 @@ bool hitScene(Ray ray, out Hit hit) {
     return hitAnything;
 }
 
+bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
+    albedo = materials[hit.materialIdx].albedo;
+
+    scattered.origin = hit.position;
+    // scattered.direction = normalize(hit.normal + randomOnUnitSphere());
+    scattered.direction = randomOnHemisphere(hit.normal);
+
+    return materials[hit.materialIdx].type == LIGHT;
+}
+
 vec3 rayColor(Ray ray) {
     Hit hit;
 
-    vec3 finalColor = vec3(0.0);
-    vec3 accumulatedColor = vec3(1.0);
+    vec3 finalColor = vec3(1.0);
     for (int i = 0; i < MAX_BOUNCES; i++) {
         if (hitScene(ray, hit)) {
-            // Update the ray
-            vec3 direction = hit.normal + randomOnUnitSphere();
-            ray.origin = hit.position;
-            ray.direction = normalize(direction);
-
-            // Accumulate color based on the material that was hit
-            Material mat = hit.material;
-            vec3 emittedLight = mat.emissionColor * mat.emissionStrength;
-            finalColor += emittedLight * accumulatedColor;
-            accumulatedColor *= mat.color;
+            vec3 albedo;
+            bool emits = scatter(hit, albedo, ray);
+            finalColor *= albedo;
+            if (emits) {
+                // finalColor *= 5.0;
+                break;
+            }
         } else {
+            vec3 unitDirection = normalize(ray.direction);
+            float t = 0.5 * (unitDirection.y + 1.0);
+            finalColor *= (1.0 - t) * vec3(1.0) + t * vec3(0.5, 0.7, 1.0);
+            // finalColor *= vec3(0.2);
             break;
         }
     }
@@ -243,6 +318,7 @@ void main() {
         Ray ray;
         ray.origin = origin;
         ray.direction = upperLeftCorner + vec3(sampleUv.x * viewportWidth, sampleUv.y * viewportHeight, 0.0) - origin;
+        ray.direction = normalize(ray.direction);
         // Get the color of the pixel at where the ray intersects the scene
         colorAccumulator += rayColor(ray);
     }

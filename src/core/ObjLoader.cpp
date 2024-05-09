@@ -30,7 +30,7 @@ bool ObjLoader::loadMesh(const std::string &filename, Mesh &out_mesh,
   }
 
   if (!ObjLoader::indexVBO(temp_vertices, temp_uvs, temp_normals, tangents,
-                           bitangents, out_mesh._vertices, out_mesh._indices)) {
+                           bitangents, out_mesh.vertices, out_mesh.indices)) {
     throw std::runtime_error("Failed to create index buffer");
   }
 

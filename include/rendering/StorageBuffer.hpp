@@ -28,7 +28,6 @@ public:
   template <typename T>
   void updateStorageBuffer(const std::vector<T> &data) const {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-    unsigned int size = data.size();
     glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, data.size() * sizeof(T),
                     data.data());
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);

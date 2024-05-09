@@ -20,8 +20,8 @@ Renderer::Renderer(const Window &window)
 
   _screenQuad = {vertices, indices};
 
-  _screenQuadLayout.createBufferLayout(_screenQuad._vertices,
-                                       _screenQuad._indices);
+  _screenQuadLayout.createBufferLayout(_screenQuad.vertices,
+                                       _screenQuad.indices);
 
   _shader.use();
   _screenQuadLayout.bind();
@@ -36,8 +36,6 @@ void Renderer::render(const Scene &scene) const {
   */
 
   _computeShader.use();
-  _computeShader.setInt("u_NumSpheres", (int)scene.spheres.size());
-  _computeShader.setInt("u_NumTriangles", (int)scene.triangles.size());
 
   // _spheresBuffer.bind();
 
@@ -59,7 +57,7 @@ void Renderer::render(const Scene &scene) const {
   // _screenQuadLayout.bind();
   // _texture.bind(_shader, 0);
 
-  glDrawElements(GL_TRIANGLES, _screenQuad._indices.size(), GL_UNSIGNED_INT,
+  glDrawElements(GL_TRIANGLES, _screenQuad.indices.size(), GL_UNSIGNED_INT,
                  nullptr);
 }
 

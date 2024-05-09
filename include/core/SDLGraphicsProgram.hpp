@@ -31,7 +31,9 @@ private:
   Scene _scene;
 
   StorageBuffer _spheresBuffer;
-  StorageBuffer _triangleBuffer;
+  // StorageBuffer _triangleBuffer;
+  StorageBuffer _vertexBuffer;
+  StorageBuffer _faceBuffer;
   StorageBuffer _materialBuffer;
 
   void input(float deltaTime);
