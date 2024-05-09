@@ -25,12 +25,14 @@ struct Material {
 struct Sphere {
     vec3 center;
     float radius;
+    int material;
 };
 
 struct Triangle {
     vec3 v0;
     vec3 v1;
     vec3 v2;
+    int material;
 };
 
 struct Mesh {
@@ -45,6 +47,7 @@ struct Hit {
     vec3 position;
     vec3 normal;
     bool frontFace;
+    Material material;
 };
 
 layout(std430, binding = 1) buffer SphereBuffer {
@@ -57,6 +60,10 @@ layout(std430, binding = 1) buffer SphereBuffer {
 
 layout(std430, binding = 2) buffer TriangleBuffer {
     Triangle triangles[];
+};
+
+layout(std430, binding = 3) buffer MaterialBuffer {
+    Material materials[];
 };
 
 // layout(std430, binding = 4) buffer MeshBuffer {
@@ -117,6 +124,7 @@ bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
 
     hit.t = t;
     hit.position = ray.origin + ray.direction * t;
+    hit.material = materials[sphere.material];
     hit.normal = (hit.position - sphere.center) / sphere.radius;
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
@@ -148,6 +156,7 @@ bool hitTriangle(Ray ray, Triangle triangle, float tMin, float tMax, out Hit hit
         hit.t = t;
         hit.position = intersectPoint;
         hit.normal = normal;
+        hit.material = materials[triangle.material];
         setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
@@ -163,15 +172,15 @@ bool hitScene(Ray ray, out Hit hit) {
     bool hitAnything = false;
     float closest = tMax;
 
-    // for (int i = 0; i < u_NumSpheres; i++) {
-    //     if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
-    //         hitAnything = true;
-    //         closest = tempHit.t;
-    //         hit = tempHit;
-    //     }
-    // }
+    for (int i = 0; i < spheres.length(); i++) {
+        if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
+            hitAnything = true;
+            closest = tempHit.t;
+            hit = tempHit;
+        }
+    }
 
-    for (int i = 0; i < u_NumTriangles; i++) {
+    for (int i = 0; i < triangles.length(); i++) {
         if (hitTriangle(ray, triangles[i], tMin, closest, tempHit)) {
             hitAnything = true;
             closest = tempHit.t;
@@ -185,20 +194,22 @@ bool hitScene(Ray ray, out Hit hit) {
 vec3 rayColor(Ray ray) {
     Hit hit;
 
-    vec3 finalColor = vec3(1.0);
+    vec3 finalColor = vec3(0.0);
+    vec3 accumulatedColor = vec3(1.0);
     for (int i = 0; i < MAX_BOUNCES; i++) {
         if (hitScene(ray, hit)) {
-            vec3 direction = hit.normal + randomOnHemisphere(hit.normal);
+            // Update the ray
+            vec3 direction = hit.normal + randomOnUnitSphere();
             ray.origin = hit.position;
             ray.direction = normalize(direction);
-            finalColor *= 0.5 * (hit.normal + 1.0);
-            // return vec3(1.0, 0.0, 0.0);
+
+            // Accumulate color based on the material that was hit
+            Material mat = hit.material;
+            vec3 emittedLight = mat.emissionColor * mat.emissionStrength;
+            finalColor += emittedLight * accumulatedColor;
+            accumulatedColor *= mat.color;
         } else {
-            vec3 unitDirection = normalize(ray.direction);
-            float t = 0.5 * (unitDirection.y + 1.0);
-            finalColor *= (1.0 - t) * vec3(1.0, 1.0, 1.0) + t * vec3(0.5, 0.7, 1.0);
             break;
-            // return vec3(0.0, 1.0, 0.0);
         }
     }
 

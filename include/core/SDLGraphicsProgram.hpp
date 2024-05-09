@@ -8,7 +8,8 @@
 class Window;
 class Renderer;
 
-class SDLGraphicsProgram {
+class SDLGraphicsProgram
+{
 public:
   SDLGraphicsProgram(Window *window, Renderer *renderer);
 
@@ -32,6 +33,7 @@ private:
 
   StorageBuffer _spheresBuffer;
   StorageBuffer _triangleBuffer;
+  StorageBuffer _materialBuffer;
 
   void input(float deltaTime);
   void update(float deltaTime);

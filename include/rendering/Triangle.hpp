@@ -2,8 +2,8 @@
 
 #include <glm/vec3.hpp>
 
-
-struct Triangle {
+struct Triangle
+{
   // glm::vec3 v0;
   // float pad0;
   // glm::vec3 v1;
@@ -13,4 +13,5 @@ struct Triangle {
   alignas(16) glm::vec3 v0;
   alignas(16) glm::vec3 v1;
   alignas(16) glm::vec3 v2;
+  int material;
 };
