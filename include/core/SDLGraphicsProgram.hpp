@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/Scene.hpp"
+#include "rendering/StorageBuffer.hpp"
+
 #include <SDL3/SDL.h>
 
 class Window;
@@ -27,6 +29,9 @@ private:
   Renderer *_renderer;
 
   Scene _scene;
+
+  StorageBuffer _spheresBuffer;
+  StorageBuffer _triangleBuffer;
 
   void input(float deltaTime);
   void update(float deltaTime);

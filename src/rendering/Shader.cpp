@@ -183,19 +183,6 @@ void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
   }
 }
 
-void Shader::setScene(const Scene &scene) const
-{
-  // TODO: implement a SSBO
-  // 1. Not sure if usage flag is correct in glBufferData
-  // 2. Need to abstract out the ssbo into maybe a buffer class?
-  GLuint ssbo;
-  glGenBuffers(1, &ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, scene.spheres.size() * (4 * sizeof(float)), scene.spheres.data(), GL_STATIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-}
-
 // void Shader::setLight(const std::string &name, const Light &light) const {
 //   setVec3("u_PointLight.position", light.getTransform().getPosition());
 //   setVec3("u_PointLight.color", light.color);

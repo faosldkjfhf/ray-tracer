@@ -13,10 +13,11 @@
 #include <iostream>
 
 SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
-    : _window(window), _renderer(renderer){};
+    : _window(window), _renderer(renderer) {
+  init();
+};
 
-void SDLGraphicsProgram::input(float deltaTime)
-{
+void SDLGraphicsProgram::input(float deltaTime) {
   int mouseY = _window->getHeight() / 2;
   int mouseX = _window->getWidth() / 2;
   float moveSpeed = 5.0f * deltaTime;
@@ -26,17 +27,14 @@ void SDLGraphicsProgram::input(float deltaTime)
   // that are related to input and output
   SDL_Event e;
   // Handle events on queue
-  while (SDL_PollEvent(&e) != 0)
-  {
-    switch (e.type)
-    {
+  while (SDL_PollEvent(&e) != 0) {
+    switch (e.type) {
     case SDL_EVENT_QUIT:
       std::cout << "Goodbye!" << std::endl;
       _quit = true;
       break;
     case SDL_EVENT_KEY_DOWN:
-      if (e.key.keysym.sym == SDLK_ESCAPE)
-      {
+      if (e.key.keysym.sym == SDLK_ESCAPE) {
         std::cout << "ESC: Goodbye!" << std::endl;
         _quit = true;
       }
@@ -56,34 +54,27 @@ void SDLGraphicsProgram::input(float deltaTime)
 
   // Camera
   // Update our position of the camera
-  if (state[SDL_SCANCODE_W])
-  {
+  if (state[SDL_SCANCODE_W]) {
     camera.moveForward(moveSpeed);
   }
-  if (state[SDL_SCANCODE_S])
-  {
+  if (state[SDL_SCANCODE_S]) {
     camera.moveBackward(moveSpeed);
   }
-  if (state[SDL_SCANCODE_A])
-  {
+  if (state[SDL_SCANCODE_A]) {
     camera.moveLeft(moveSpeed);
   }
-  if (state[SDL_SCANCODE_D])
-  {
+  if (state[SDL_SCANCODE_D]) {
     camera.moveRight(moveSpeed);
   }
-  if (state[SDL_SCANCODE_SPACE])
-  {
+  if (state[SDL_SCANCODE_SPACE]) {
     camera.moveUp(moveSpeed);
   }
-  if (state[SDL_SCANCODE_Q])
-  {
+  if (state[SDL_SCANCODE_Q]) {
     camera.moveDown(moveSpeed);
   }
 
   // Toggle polygon mode
-  if (state[SDL_SCANCODE_TAB])
-  {
+  if (state[SDL_SCANCODE_TAB]) {
     SDL_Delay(200);
     _renderer->flipPolygonMode();
   }
@@ -93,21 +84,23 @@ void SDLGraphicsProgram::input(float deltaTime)
 
 void SDLGraphicsProgram::update(float deltaTime) {}
 
-void SDLGraphicsProgram::render() const { _renderer->render(_scene); }
+void SDLGraphicsProgram::render() const {
+  _spheresBuffer.bind();
+  _triangleBuffer.bind();
+  _renderer->render(_scene);
+}
 
-void SDLGraphicsProgram::run()
-{
+void SDLGraphicsProgram::run() {
   /*
   SDL_WarpMouseInWindow(_window->getWindow(), _window->getWidth() / 2,
                         _window->getHeight() / 2);*/
-  // Disable for grabbing
-  // SDL_SetRelativeMouseMode(SDL_TRUE);
   getOpenGLVersionInfo();
+
+  // _renderer->updateScene(_scene);
 
   _lastTime = SDL_GetTicks();
   int frameCount = 0;
-  while (!_quit)
-  {
+  while (!_quit) {
     Uint32 currentTime = SDL_GetTicks();
     Uint32 delta = std::max((unsigned int)1, currentTime - _lastTime);
     _lastTime = currentTime;
@@ -126,13 +119,10 @@ void SDLGraphicsProgram::run()
     //   SDL_Delay(16 - delta);
     // }
     // std::cout << "delta: " << delta << "ms\n";
-    if (frameCount > 100)
-    {
+    if (frameCount > 100) {
       std::cout << "FPS: " << 1000.0f / delta << std::endl;
       frameCount = 0;
-    }
-    else
-    {
+    } else {
       frameCount++;
     }
 
@@ -140,8 +130,7 @@ void SDLGraphicsProgram::run()
   }
 }
 
-void SDLGraphicsProgram::getOpenGLVersionInfo()
-{
+void SDLGraphicsProgram::getOpenGLVersionInfo() {
   std::cout << "Vendor: " << glGetString(GL_VENDOR) << "\n";
   std::cout << "Renderer: " << glGetString(GL_RENDERER) << "\n";
   std::cout << "Version: " << glGetString(GL_VERSION) << "\n";
@@ -149,9 +138,29 @@ void SDLGraphicsProgram::getOpenGLVersionInfo()
             << "\n";
 }
 
-void SDLGraphicsProgram::init()
-{
+void SDLGraphicsProgram::init() {
   // Create some spheres in the scene
   _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5f});
   _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f});
+
+  // Create some triangles in the scene
+  _scene.triangles.push_back({{-0.5f, -0.5f, -1.0f},
+                              // 0.0f,
+                              {0.5f, -0.5f, -1.0f},
+                              // 0.0f,
+                              {0.0f, 0.5f, -1.0f},
+                              /* 0.0f */});
+  _scene.triangles.push_back({{0.0f, 0.0f, -1.0f},
+                              // 0.0f,
+                              {1.0f, 0.0f, -1.0f},
+                              // 0.0f,
+                              {0.0f, 1.0f, -1.0f},
+                              /* 0.0f */});
+
+  // Create the storage buffers
+  _spheresBuffer.createStorageBuffer(_scene.spheres, GL_STATIC_DRAW, 1);
+  _triangleBuffer.createStorageBuffer(_scene.triangles, GL_STATIC_DRAW, 2);
+
+  _spheresBuffer.updateStorageBuffer(_scene.spheres);
+  _triangleBuffer.updateStorageBuffer(_scene.triangles);
 }

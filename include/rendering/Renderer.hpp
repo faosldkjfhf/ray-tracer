@@ -1,9 +1,10 @@
 #pragma once
 
-#include "core/Scene.hpp"
 #include "core/Camera.hpp"
+#include "core/Scene.hpp"
 
 #include "rendering/Mesh.hpp"
+#include "rendering/StorageBuffer.hpp"
 #include "rendering/Texture.hpp"
 #include "rendering/VertexBufferLayout.hpp"
 
@@ -18,12 +19,11 @@ public:
 
   void render(const Scene &scene) const;
 
+  // void updateScene(const Scene &scene);
+
   void flipPolygonMode();
 
-  void setupTexture();
-
   Camera &getCamera() { return _camera; }
-  // Light &getLight() { return _light; }
 
 private:
   Camera _camera;
@@ -31,19 +31,13 @@ private:
   Shader _shader;
   Shader _computeShader;
 
+  // TODO: Think about maybe moving to main application
+  // StorageBuffer _spheresBuffer;
+  // StorageBuffer _triangleBuffer;
+
   Mesh _screenQuad;
   VertexBufferLayout _screenQuadLayout;
   Texture _texture;
-
-  // Shader _lightShader;
-  // Shader _depthShader;
-  // DepthMap _depthMap;
-
-  // Shader _debugDepthShader;
-
-  // std::vector<Light> _lights;
-  // unsigned int _activeLight = 0;
-  // Light _light;
 
   const Window *_window;
   GLenum _polygonMode = GL_FILL;

@@ -33,7 +33,6 @@ int main(int argc, char *args[])
   SDLGraphicsProgram graphicsProgram(&window, &renderer);
   glCheckError("SDLGraphicsProgram", 21);
 
-  graphicsProgram.init();
   graphicsProgram.run();
 
   return 0;
