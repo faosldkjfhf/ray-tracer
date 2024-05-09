@@ -8,8 +8,7 @@
 class Window;
 class Renderer;
 
-class SDLGraphicsProgram
-{
+class SDLGraphicsProgram {
 public:
   SDLGraphicsProgram(Window *window, Renderer *renderer);
 

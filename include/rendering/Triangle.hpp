@@ -2,8 +2,7 @@
 
 #include <glm/vec3.hpp>
 
-struct Triangle
-{
+struct Triangle {
   // glm::vec3 v0;
   // float pad0;
   // glm::vec3 v1;
