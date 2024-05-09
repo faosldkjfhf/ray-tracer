@@ -1,5 +1,7 @@
 # Real-Time Ray Tracer
 
+![image](./media/image.png)
+
 Justin Liu and Kevin Liu
 
 ### TODO:
