@@ -29,13 +29,6 @@ struct Sphere {
     uint materialIdx;
 };
 
-struct Triangle {
-    vec3 v0;
-    vec3 v1;
-    vec3 v2;
-    uint materialIdx;
-};
-
 struct Face {
     uint v0;
     uint v1;
@@ -63,10 +56,6 @@ layout(std430, binding = 1) buffer SphereBuffer {
     Sphere spheres[];
 };
 
-// layout(std430, binding = 2) buffer TriangleBuffer {
-//     Triangle triangles[];
-// };
-
 layout(std430, binding = 2) buffer VertexBuffer {
     vec3 vertices[];
 };
@@ -78,10 +67,6 @@ layout(std430, binding = 3) buffer FaceBuffer {
 layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
 };
-
-// layout(std430, binding = 4) buffer MeshBuffer {
-//     Mesh meshes[];
-// };
 
 float stepRngFloat(inout uint state) {
     state = state * 747796405 + 2891336453;
@@ -150,40 +135,6 @@ bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
     return true;
 }
 
-bool hitTriangle(Ray ray, Triangle triangle, float tMin, float tMax, out Hit hit) {
-    // Check if ray intersects the plane of the triangle
-    vec3 v0v1 = triangle.v1 - triangle.v0;
-    vec3 v1v2 = triangle.v2 - triangle.v1;
-    vec3 v2v0 = triangle.v0 - triangle.v2;
-    vec3 normal = cross(v0v1, v1v2);
-
-    float nDotV0MinusO = dot(normal, triangle.v0 - ray.origin);
-    float nDotD = dot(normal, ray.direction);
-    float t = nDotV0MinusO / nDotD;
-    vec3 intersectPoint = ray.origin + ray.direction * t;
-
-    if (t < tMin || t > tMax) {
-        return false;
-    }
-
-    // Check if the intersection point is inside the triangle
-    float dotCross0 = dot(cross(v0v1, intersectPoint - triangle.v0), normal);
-    float dotCross1 = dot(cross(v1v2, intersectPoint - triangle.v1), normal);
-    float dotCross2 = dot(cross(v2v0, intersectPoint - triangle.v2), normal);
-
-    if ((dotCross0 >= 0.0 && dotCross1 >= 0.0 && dotCross2 >= 0.0) ||
-            (dotCross0 <= 0.0 && dotCross1 <= 0.0 && dotCross2 <= 0.0)) {
-        hit.t = t;
-        hit.position = intersectPoint;
-        hit.normal = normal;
-        hit.materialIdx = triangle.materialIdx;
-        setHitFaceNormal(hit, ray, hit.normal);
-        return true;
-    }
-
-    return false;
-}
-
 bool hitFace(Ray ray, Face face, float tMin, float tMax, out Hit hit) {
     // Check if ray intersects the plane of the triangle
     vec3 v0 = vertices[face.v0];
@@ -237,14 +188,6 @@ bool hitScene(Ray ray, out Hit hit) {
         }
     }
 
-    // for (int i = 0; i < triangles.length(); i++) {
-    //     if (hitTriangle(ray, triangles[i], tMin, closest, tempHit)) {
-    //         hitAnything = true;
-    //         closest = tempHit.t;
-    //         hit = tempHit;
-    //     }
-    // }
-
     for (int i = 0; i < faces.length(); i++) {
         if (hitFace(ray, faces[i], tMin, closest, tempHit)) {
             hitAnything = true;
@@ -261,7 +204,7 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
 
     scattered.origin = hit.position;
     // scattered.direction = normalize(hit.normal + randomOnUnitSphere());
-    scattered.direction = randomOnHemisphere(hit.normal);
+    scattered.direction = normalize(hit.normal + randomOnHemisphere(hit.normal));
 
     return materials[hit.materialIdx].type == LIGHT;
 }
@@ -283,7 +226,7 @@ vec3 rayColor(Ray ray) {
             vec3 unitDirection = normalize(ray.direction);
             float t = 0.5 * (unitDirection.y + 1.0);
             finalColor *= (1.0 - t) * vec3(1.0) + t * vec3(0.5, 0.7, 1.0);
-            // finalColor *= vec3(0.2);
+            // finalColor *= vec3(0.5);
             break;
         }
     }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/Scene.hpp"
-#include "rendering/StorageBuffer.hpp"
+#include "core/StorageBuffer.hpp"
 
 #include <SDL3/SDL.h>
 
@@ -31,7 +31,6 @@ private:
   Scene _scene;
 
   StorageBuffer _spheresBuffer;
-  // StorageBuffer _triangleBuffer;
   StorageBuffer _vertexBuffer;
   StorageBuffer _faceBuffer;
   StorageBuffer _materialBuffer;

@@ -4,7 +4,6 @@
 #include "core/Scene.hpp"
 
 #include "rendering/Mesh.hpp"
-#include "rendering/StorageBuffer.hpp"
 #include "rendering/Texture.hpp"
 #include "rendering/VertexBufferLayout.hpp"
 
@@ -30,10 +29,6 @@ private:
 
   Shader _shader;
   Shader _computeShader;
-
-  // TODO: Think about maybe moving to main application
-  // StorageBuffer _spheresBuffer;
-  // StorageBuffer _triangleBuffer;
 
   Mesh _screenQuad;
   VertexBufferLayout _screenQuadLayout;

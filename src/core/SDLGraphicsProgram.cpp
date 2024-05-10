@@ -117,11 +117,6 @@ void SDLGraphicsProgram::run() {
 
     glCheckError("run", 132);
 
-    // if (delta < 16) {
-    //   std::cout << "Delaying: " << 16 - delta << "ms" << std::endl;
-    //   SDL_Delay(16 - delta);
-    // }
-    // std::cout << "delta: " << delta << "ms\n";
     if (frameCount > 100) {
       std::cout << "FPS: " << 1000.0f / delta << std::endl;
       frameCount = 0;
@@ -148,12 +143,6 @@ void SDLGraphicsProgram::init() {
   // _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 2});
   _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
 
-  // Create some triangles in the scene
-  // _scene.triangles.push_back(
-  //     {{-0.5f, -0.5f, -2.0f}, {0.5f, -0.5f, -1.0f}, {0.0f, 0.5f, -2.0f}, 3});
-  // _scene.triangles.push_back(
-  //     {{1.0f, -0.5f, -1.5f}, {0.5f, -0.5f, -2.0f}, {1.0f, 0.5f, -2.0f}, 0});
-
   // 0. red, 1. green, 2. blue, 3. white light
   _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
   _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, MaterialType::LAMBERTIAN});
@@ -162,20 +151,37 @@ void SDLGraphicsProgram::init() {
 
   // Create some objects in the scene
   Object cube("res/models/cube/cube.obj");
-  cube.getTransform().setPosition(1.0f, 1.0f, -3.0f);
+  cube.transform.setPosition(1.0f, 1.0f, -3.0f);
   _scene.objects.push_back(cube);
+  // Mesh mesh;
+  // mesh.vertices.push_back({{-0.5f, -0.5f, -2.0f}});
+  // mesh.vertices.push_back({{0.5f, -0.5f, -1.0f}});
+  // mesh.vertices.push_back({{0.0f, 0.5f, -2.0f}});
+  // mesh.indices.push_back(0);
+  // mesh.indices.push_back(1);
+  // mesh.indices.push_back(2);
+  // _scene.objects.push_back({mesh});
+  // _scene.objects[0].material = _scene.materials[2];
+  //
+  // Mesh mesh2;
+  // mesh2.vertices.push_back({{1.0f, -0.5f, -1.5f}});
+  // mesh2.vertices.push_back({{0.5f, -0.5f, -2.0f}});
+  // mesh2.vertices.push_back({{1.0f, 0.5f, -2.0f}});
+  // mesh2.indices.push_back(0);
+  // mesh2.indices.push_back(1);
+  // mesh2.indices.push_back(2);
+  // _scene.objects.push_back({mesh2});
+  // _scene.objects[1].material = _scene.materials[0];
 
   _scene.update();
 
   // Create the storage buffers
   _spheresBuffer.createStorageBuffer(_scene.spheres, GL_STATIC_DRAW, 1);
-  // _triangleBuffer.createStorageBuffer(_scene.triangles, GL_STATIC_DRAW, 2);
   _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 2);
   _faceBuffer.createStorageBuffer(_scene.getFaces(), GL_STATIC_DRAW, 3);
   _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 4);
 
   _spheresBuffer.updateStorageBuffer(_scene.spheres);
-  // _triangleBuffer.updateStorageBuffer(_scene.triangles);
   _vertexBuffer.updateStorageBuffer(_scene.getVertices());
   _faceBuffer.updateStorageBuffer(_scene.getFaces());
   _materialBuffer.updateStorageBuffer(_scene.materials);

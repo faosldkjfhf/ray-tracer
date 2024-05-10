@@ -1,4 +1,4 @@
-#include "rendering/StorageBuffer.hpp"
+#include "core/StorageBuffer.hpp"
 
 StorageBuffer::~StorageBuffer() { glDeleteBuffers(1, &ssbo); }
 

@@ -19,11 +19,11 @@ struct MeshVertex;
 class VertexBufferLayout {
 public:
   // Vertex Array Object
-  GLuint _vao = 0;
+  GLuint vao = 0;
   // Vertex Buffer
-  GLuint _vbo = 0;
+  GLuint vbo = 0;
   // Index Buffer Object
-  GLuint _ebo = 0;
+  GLuint ebo = 0;
 
   VertexBufferLayout() = default;
 

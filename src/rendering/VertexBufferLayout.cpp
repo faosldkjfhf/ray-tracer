@@ -5,15 +5,15 @@
 #include "rendering/MeshVertex.hpp"
 
 VertexBufferLayout::~VertexBufferLayout() {
-  glDeleteVertexArrays(1, &_vao);
-  glDeleteBuffers(1, &_vbo);
-  glDeleteBuffers(1, &_ebo);
+  glDeleteVertexArrays(1, &vao);
+  glDeleteBuffers(1, &vbo);
+  glDeleteBuffers(1, &ebo);
 }
 
 void VertexBufferLayout::bind() const {
-  glBindVertexArray(_vao);
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
+  glBindVertexArray(vao);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 }
 
 void VertexBufferLayout::unbind() const {
@@ -25,16 +25,16 @@ void VertexBufferLayout::unbind() const {
 void VertexBufferLayout::createBufferLayout(
     std::vector<MeshVertex> &vertices, std::vector<unsigned int> &indices) {
   // Set up VAO, VBO, EBO
-  glGenVertexArrays(1, &_vao);
-  glBindVertexArray(_vao);
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
 
-  glGenBuffers(1, &_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+  glGenBuffers(1, &vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(MeshVertex),
                vertices.data(), GL_STATIC_DRAW);
 
-  glGenBuffers(1, &_ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
+  glGenBuffers(1, &ebo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
                indices.data(), GL_STATIC_DRAW);
 
