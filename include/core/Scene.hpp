@@ -11,10 +11,10 @@ struct Vertex {
 };
 
 struct Face {
-  unsigned int v0;
-  unsigned int v1;
-  unsigned int v2;
-  unsigned int materialIdx;
+  uint32_t v0;
+  uint32_t v1;
+  uint32_t v2;
+  uint32_t materialIdx;
 };
 
 struct Scene {

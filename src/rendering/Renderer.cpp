@@ -37,8 +37,6 @@ void Renderer::render(const Scene &scene) const {
 
   _computeShader.use();
 
-  // _spheresBuffer.bind();
-
   // Pass in scene data as uniforms
   _computeShader.setVec3("u_CameraPosition", _camera.getPosition());
   glCall(glDispatchCompute((GLuint)_window->getWidth() / 10,
@@ -46,7 +44,6 @@ void Renderer::render(const Scene &scene) const {
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  // Set the polygon fill mode
   glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
 
   // Reset viewport
@@ -60,14 +57,6 @@ void Renderer::render(const Scene &scene) const {
   glDrawElements(GL_TRIANGLES, _screenQuad.indices.size(), GL_UNSIGNED_INT,
                  nullptr);
 }
-
-// void Renderer::updateScene(const Scene &scene) {
-//   if (_spheresBuffer.ssbo == 0) {
-//     _spheresBuffer.createStorageBuffer(scene.spheres, GL_STATIC_DRAW, 1);
-//   } else {
-//     _spheresBuffer.updateStorageBuffer(scene.spheres);
-//   }
-// }
 
 void Renderer::flipPolygonMode() {
   _polygonMode = _polygonMode == GL_FILL ? GL_LINE : GL_FILL;

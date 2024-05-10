@@ -46,7 +46,7 @@ std::vector<Face> Scene::getFaces() const {
       std::cerr << "Material not found in scene" << std::endl;
       continue;
     }
-    unsigned int materialIdx = std::distance(materials.begin(), materialIt);
+    uint32_t materialIdx = std::distance(materials.begin(), materialIt);
 
     const auto &indices = object.mesh.indices;
 

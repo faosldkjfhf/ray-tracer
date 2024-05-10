@@ -85,11 +85,10 @@ void SDLGraphicsProgram::input(float deltaTime) {
 void SDLGraphicsProgram::update(float deltaTime) {}
 
 void SDLGraphicsProgram::render() const {
-  _spheresBuffer.bind();
-  // _triangleBuffer.bind();
-  _vertexBuffer.bind();
-  _faceBuffer.bind();
-  _materialBuffer.bind();
+  // _spheresBuffer.bind();
+  // _vertexBuffer.bind();
+  // _faceBuffer.bind();
+  // _materialBuffer.bind();
   _renderer->render(_scene);
 }
 
@@ -99,13 +98,16 @@ void SDLGraphicsProgram::run() {
                         _window->getHeight() / 2);*/
   getOpenGLVersionInfo();
 
-  // _renderer->updateScene(_scene);
+  _spheresBuffer.bind();
+  _vertexBuffer.bind();
+  _faceBuffer.bind();
+  _materialBuffer.bind();
 
   _lastTime = SDL_GetTicks();
   int frameCount = 0;
   while (!_quit) {
     Uint32 currentTime = SDL_GetTicks();
-    Uint32 delta = std::max((unsigned int)1, currentTime - _lastTime);
+    Uint32 delta = std::max((Uint32)1, currentTime - _lastTime);
     _lastTime = currentTime;
 
     glCheckError("run", 126);
