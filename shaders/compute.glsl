@@ -252,6 +252,10 @@ bool hitBvh(Ray ray, out Hit hit) {
                 }
             }
         }
+        // } else {
+        //     stack[stackSize++] = node.leftChild;
+        //     stack[stackSize++] = node.leftChild + 1;
+        //
 
         if (node.leftChild != -1) {
             stack[stackSize++] = node.leftChild;
