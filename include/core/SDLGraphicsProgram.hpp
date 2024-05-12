@@ -35,6 +35,7 @@ class SDLGraphicsProgram {
     StorageBuffer _faceBuffer;
     StorageBuffer _materialBuffer;
     StorageBuffer _bvhBuffer;
+    StorageBuffer _gpuObjectBuffer;
 
     void input(float deltaTime);
     void update(float deltaTime);

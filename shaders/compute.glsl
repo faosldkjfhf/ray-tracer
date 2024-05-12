@@ -23,22 +23,22 @@ struct Material {
     uint type;
 };
 
-struct Sphere {
-    vec3 center;
-    float radius;
-    uint materialIdx;
-};
+// struct Sphere {
+//     vec3 center;
+//     float radius;
+//     uint materialIdx;
+// };
 
-struct Face {
-    uint v0;
-    uint v1;
-    uint v2;
-    uint materialIdx;
-};
+// struct Face {
+//     uint v0;
+//     uint v1;
+//     uint v2;
+//     uint materialIdx;
+// };
 
 struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
-    uint type;
+    uint type; // 0: Sphere, 1: Triangle/Face
     uint materialIdx;
 };
 
@@ -58,23 +58,27 @@ struct BVHNode {
     int numObjects;
 };
 
-layout(std430, binding = 1) buffer SphereBuffer {
-    Sphere spheres[];
+layout(std430, binding = 1) buffer ObjectBuffer {
+    Object objects[];
 };
+
+// layout(std430, binding = 1) buffer SphereBuffer {
+//     Sphere spheres[];
+// };
 
 layout(std430, binding = 2) buffer VertexBuffer {
     vec3 vertices[];
 };
 
-layout(std430, binding = 3) buffer FaceBuffer {
-    Face faces[];
-};
+// layout(std430, binding = 3) buffer FaceBuffer {
+//     Face faces[];
+// };
 
-layout(std430, binding = 4) buffer MaterialBuffer {
+layout(std430, binding = 3) buffer MaterialBuffer {
     Material materials[];
 };
 
-layout(std430, binding = 5) buffer BVHBuffer {
+layout(std430, binding = 4) buffer BVHBuffer {
     BVHNode bvh[];
 };
 
@@ -127,11 +131,11 @@ vec2 intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax, out float t) {
     return vec2(tNear, tFar);
 }
 
-bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
-    vec3 oc = sphere.center - ray.origin;
+bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
+    vec3 oc = sphere.data.xyz - ray.origin;
     float a = dot(ray.direction, ray.direction);
     float h = dot(oc, ray.direction);
-    float c = dot(oc, oc) - sphere.radius * sphere.radius;
+    float c = dot(oc, oc) - sphere.data.w * sphere.data.w;
     float discriminant = h * h - a * c;
 
     if (discriminant < 0.0) {
@@ -151,16 +155,16 @@ bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
     hit.t = t;
     hit.position = ray.origin + ray.direction * t;
     hit.materialIdx = sphere.materialIdx;
-    hit.normal = (hit.position - sphere.center) / sphere.radius;
+    hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
 
-bool hitFace(Ray ray, Face face, float tMin, float tMax, out Hit hit) {
+bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     // Check if ray intersects the plane of the triangle
-    vec3 v0 = vertices[face.v0];
-    vec3 v1 = vertices[face.v1];
-    vec3 v2 = vertices[face.v2];
+    vec3 v0 = vertices[int(face.data.x)];
+    vec3 v1 = vertices[int(face.data.y)];
+    vec3 v2 = vertices[int(face.data.z)];
     vec3 v0v1 = v1 - v0;
     vec3 v1v2 = v2 - v1;
     vec3 v2v0 = v0 - v2;
@@ -193,32 +197,32 @@ bool hitFace(Ray ray, Face face, float tMin, float tMax, out Hit hit) {
     return false;
 }
 
-bool hitScene(Ray ray, out Hit hit) {
-    float tMin = 0.001;
-    float tMax = 1000.0;
+// bool hitScene(Ray ray, out Hit hit) {
+//     float tMin = 0.001;
+//     float tMax = 1000.0;
 
-    Hit tempHit;
-    bool hitAnything = false;
-    float closest = tMax;
+//     Hit tempHit;
+//     bool hitAnything = false;
+//     float closest = tMax;
 
-    for (int i = 0; i < spheres.length(); i++) {
-        if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
-            hitAnything = true;
-            closest = tempHit.t;
-            hit = tempHit;
-        }
-    }
+//     for (int i = 0; i < spheres.length(); i++) {
+//         if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
+//             hitAnything = true;
+//             closest = tempHit.t;
+//             hit = tempHit;
+//         }
+//     }
 
-    for (int i = 0; i < faces.length(); i++) {
-        if (hitFace(ray, faces[i], tMin, closest, tempHit)) {
-            hitAnything = true;
-            closest = tempHit.t;
-            hit = tempHit;
-        }
-    }
+//     for (int i = 0; i < faces.length(); i++) {
+//         if (hitFace(ray, faces[i], tMin, closest, tempHit)) {
+//             hitAnything = true;
+//             closest = tempHit.t;
+//             hit = tempHit;
+//         }
+//     }
 
-    return hitAnything;
-}
+//     return hitAnything;
+// }
 
 bool hitBvh(Ray ray, out Hit hit) {
     float tMin = 0.001;
@@ -244,11 +248,20 @@ bool hitBvh(Ray ray, out Hit hit) {
         if (node.numObjects > 0) {
             for (int i = 0; i < node.numObjects; i++) {
                 int objectIdx = node.firstObject + i;
-                Face face = faces[objectIdx];
-                if (hitFace(ray, face, tMin, closest, tempHit)) {
-                    hitAnything = true;
-                    closest = tempHit.t;
-                    hit = tempHit;
+                Object obj = objects[objectIdx];
+                // Face face = faces[objectIdx];
+                if (obj.type == 0) {
+                    if (hitSphere(ray, obj, tMin, closest, tempHit)) {
+                        hitAnything = true;
+                        closest = tempHit.t;
+                        hit = tempHit;
+                    }
+                } else if (obj.type == 1) {
+                    if (hitFace(ray, obj, tMin, closest, tempHit)) {
+                        hitAnything = true;
+                        closest = tempHit.t;
+                        hit = tempHit;
+                    }
                 }
             }
         }

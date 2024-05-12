@@ -6,16 +6,19 @@
 #include "core/Object.hpp"
 #include "core/Vertex.hpp"
 #include "rendering/BVH.hpp"
+#include "rendering/GPUObject.hpp"
 #include "rendering/Material.hpp"
 #include "rendering/Sphere.hpp"
 
 struct Scene {
-    std::vector<Sphere> spheres;
-    std::vector<Object> objects;
-    std::vector<Material> materials;
-    BVH bvh;
+  // std::vector<Sphere> spheres;
+  std::vector<Object> objects;
+  std::vector<Material> materials;
 
-    void update();
-    std::vector<Vertex> getVertices() const;
-    std::vector<Face> getFaces() const;
+  std::vector<GpuObject> gpuObjects;
+  BVH bvh;
+
+  void update();
+  std::vector<Vertex> getVertices() const;
+  std::vector<Face> getFaces() const;
 };

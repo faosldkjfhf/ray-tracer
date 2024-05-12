@@ -138,10 +138,13 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
 
 void SDLGraphicsProgram::init() {
     // Create some spheres in the scene
-    _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
+    _scene.gpuObjects.push_back({{-1.0f, 0.0f, -1.0f, 0.5f}, 0, 3});
+    _scene.gpuObjects.push_back({{0.0f, -100.5f, -1.0f, 100.0f}, 0, 1});
+
+    // _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
     // _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5, 3});
     // _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 2});
-    _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
+    // _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
 
     // 0. red, 1. green, 2. blue, 3. white light
     _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
@@ -175,17 +178,22 @@ void SDLGraphicsProgram::init() {
 
     _scene.update();
 
+    // add all faces into the gpuObjects list
+
     // Create the storage buffers
-    _spheresBuffer.createStorageBuffer(_scene.spheres, GL_STATIC_DRAW, 1);
+    _gpuObjectBuffer.createStorageBuffer(_scene.gpuObjects, GL_STATIC_DRAW, 1);
+    // _spheresBuffer.createStorageBuffer(_scene.spheres, GL_STATIC_DRAW, 1);
     _vertexBuffer.createStorageBuffer(_scene.bvh.getVertices(), GL_STATIC_DRAW,
                                       2);
-    _faceBuffer.createStorageBuffer(_scene.bvh.getFaces(), GL_STATIC_DRAW, 3);
-    _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 4);
-    _bvhBuffer.createStorageBuffer(_scene.bvh.getBVH(), GL_STATIC_DRAW, 5);
+    // _faceBuffer.createStorageBuffer(_scene.bvh.getFaces(), GL_STATIC_DRAW,
+    // 3);
+    _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 3);
+    _bvhBuffer.createStorageBuffer(_scene.bvh.getBVH(), GL_STATIC_DRAW, 4);
 
-    _spheresBuffer.updateStorageBuffer(_scene.spheres);
+    _gpuObjectBuffer.updateStorageBuffer(_scene.gpuObjects);
+    //_spheresBuffer.updateStorageBuffer(_scene.spheres);
     _vertexBuffer.updateStorageBuffer(_scene.bvh.getVertices());
-    _faceBuffer.updateStorageBuffer(_scene.bvh.getFaces());
+    //_faceBuffer.updateStorageBuffer(_scene.bvh.getFaces());
     _materialBuffer.updateStorageBuffer(_scene.materials);
     _bvhBuffer.updateStorageBuffer(_scene.bvh.getBVH());
 }
