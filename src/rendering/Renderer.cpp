@@ -39,8 +39,8 @@ void Renderer::render(const Scene &scene) const {
 
   // Pass in scene data as uniforms
   _computeShader.setVec3("u_CameraPosition", _camera.getPosition());
-  glCall(glDispatchCompute((GLuint)_window->getWidth() / 10,
-                           (GLuint)_window->getHeight() / 10, 1));
+  glCall(glDispatchCompute((GLuint)_window->getWidth() / 32,
+                           (GLuint)_window->getHeight() / 32, 1));
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);

@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(local_size_x = 10, local_size_y = 10, local_size_z = 1) in;
+layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 #define PI 3.14159265358979323846
 #define MAX_BOUNCES 10
@@ -36,13 +36,11 @@ struct Face {
     uint materialIdx;
 };
 
-// struct Mesh {
-//     uint vertexOffset;
-//     uint vertexCount;
-//     uint faceOffset;
-//     uint faceCount;
-//     uint material;
-// };
+struct Object {
+    vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
+    uint type;
+    uint materialIdx;
+};
 
 struct Hit {
     float t;
@@ -118,8 +116,15 @@ void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
 }
 
-bool intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax) {
-    return false;
+vec2 intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax, out float t) {
+    // https://tavianator.com/2011/ray_box.html
+    vec3 tMin = (boxMin - ray.origin) / ray.direction;
+    vec3 tMax = (boxMax - ray.origin) / ray.direction;
+    vec3 t1 = min(tMin, tMax);
+    vec3 t2 = max(tMin, tMax);
+    float tNear = max(max(t1.x, t1.y), t1.z);
+    float tFar = min(min(t2.x, t2.y), t2.z);
+    return vec2(tNear, tFar);
 }
 
 bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
@@ -215,6 +220,56 @@ bool hitScene(Ray ray, out Hit hit) {
     return hitAnything;
 }
 
+bool hitBvh(Ray ray, out Hit hit) {
+    float tMin = 0.001;
+    float tMax = 1000.0;
+
+    Hit tempHit;
+    bool hitAnything = false;
+    float closest = tMax;
+
+    int stack[64];
+    int stackSize = 0;
+    stack[stackSize++] = 0;
+
+    while (stackSize > 0 && stackSize < 64) {
+        int nodeIdx = stack[--stackSize];
+        BVHNode node = bvh[nodeIdx];
+
+        vec2 tIntersect = intersectAABB(ray, node.aabbMin, node.aabbMax, tempHit.t);
+        if (tIntersect.y < tIntersect.x) {
+            continue;
+        }
+
+        if (node.numObjects > 0) {
+            for (int i = 0; i < node.numObjects; i++) {
+                int objectIdx = node.firstObject + i;
+                Face face = faces[objectIdx];
+                if (hitFace(ray, face, tMin, closest, tempHit)) {
+                    hitAnything = true;
+                    closest = tempHit.t;
+                    hit = tempHit;
+                }
+            }
+        }
+
+        if (node.leftChild != -1) {
+            stack[stackSize++] = node.leftChild;
+            stack[stackSize++] = node.leftChild + 1;
+        }
+    }
+
+    // for (int i = 0; i < spheres.length(); i++) {
+    //     if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
+    //         hitAnything = true;
+    //         closest = tempHit.t;
+    //         hit = tempHit;
+    //     }
+    // }
+
+    return hitAnything;
+}
+
 bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     albedo = materials[hit.materialIdx].albedo;
 
@@ -230,7 +285,7 @@ vec3 rayColor(Ray ray) {
 
     vec3 finalColor = vec3(1.0);
     for (int i = 0; i < MAX_BOUNCES; i++) {
-        if (hitScene(ray, hit)) {
+        if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool emits = scatter(hit, albedo, ray);
             finalColor *= albedo;
