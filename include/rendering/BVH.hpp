@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 #include <vector>
 
-#include "core/Face.hpp"
+#include "core/AABB.hpp"
 #include "core/Vertex.hpp"
-#include "rendering/GPUObject.hpp"
+#include "rendering/GpuObject.hpp"
 
 struct BVHNode {
   alignas(16) glm::vec3 aabbMin{glm::vec3(INFINITY)};
@@ -16,22 +16,24 @@ struct BVHNode {
 };
 
 class BVH {
- public:
+public:
   BVH() = default;
 
   void buildBVH(const std::vector<GpuObject> &gpuObjects,
                 const std::vector<Vertex> &vertices);
-  void updateNodeBounds(unsigned int nodeIndex);
-  void subdivide(unsigned int nodeIndex);
+  void updateNodeBounds(unsigned int nodeIndex,
+                        const std::vector<Vertex> &vertices);
+  void subdivide(unsigned int nodeIndex, const std::vector<Vertex> &vertices);
 
-  const std::vector<BVHNode> &getBVH() const { return _nodes; }
-  const std::vector<Vertex> &getVertices() const { return _vertices; }
+  AABB getAABB(GpuObject &object, const std::vector<Vertex> &vertices) const;
 
- private:
+  const std::vector<BVHNode> &getBVHNodes() const { return _nodes; }
+  const std::vector<GpuObject> &getGpuObjects() const { return _gpuObjects; }
+
+private:
   unsigned int _nodesUsed = 1;
   unsigned int _size = 0;
   std::vector<BVHNode> _nodes;
 
   std::vector<GpuObject> _gpuObjects;
-  std::vector<Vertex> _vertices;
 };

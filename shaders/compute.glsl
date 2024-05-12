@@ -36,9 +36,12 @@ struct Material {
 //     uint materialIdx;
 // };
 
+#define TYPE_FACE 0
+#define TYPE_SPHERE 1
+
 struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
-    uint type; // 0: Sphere, 1: Triangle/Face
+    uint type; // 0: Triangle/Face, 1: Sphere
     uint materialIdx;
 };
 
@@ -200,11 +203,11 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
 // bool hitScene(Ray ray, out Hit hit) {
 //     float tMin = 0.001;
 //     float tMax = 1000.0;
-
+//
 //     Hit tempHit;
 //     bool hitAnything = false;
 //     float closest = tMax;
-
+//
 //     for (int i = 0; i < spheres.length(); i++) {
 //         if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
 //             hitAnything = true;
@@ -212,7 +215,7 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
 //             hit = tempHit;
 //         }
 //     }
-
+//
 //     for (int i = 0; i < faces.length(); i++) {
 //         if (hitFace(ray, faces[i], tMin, closest, tempHit)) {
 //             hitAnything = true;
@@ -220,7 +223,7 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
 //             hit = tempHit;
 //         }
 //     }
-
+//
 //     return hitAnything;
 // }
 
@@ -249,15 +252,14 @@ bool hitBvh(Ray ray, out Hit hit) {
             for (int i = 0; i < node.numObjects; i++) {
                 int objectIdx = node.firstObject + i;
                 Object obj = objects[objectIdx];
-                // Face face = faces[objectIdx];
-                if (obj.type == 0) {
-                    if (hitSphere(ray, obj, tMin, closest, tempHit)) {
+                if (obj.type == TYPE_FACE) {
+                    if (hitFace(ray, obj, tMin, closest, tempHit)) {
                         hitAnything = true;
                         closest = tempHit.t;
                         hit = tempHit;
                     }
-                } else if (obj.type == 1) {
-                    if (hitFace(ray, obj, tMin, closest, tempHit)) {
+                } else if (obj.type == TYPE_SPHERE) {
+                    if (hitSphere(ray, obj, tMin, closest, tempHit)) {
                         hitAnything = true;
                         closest = tempHit.t;
                         hit = tempHit;
@@ -275,14 +277,6 @@ bool hitBvh(Ray ray, out Hit hit) {
             stack[stackSize++] = node.leftChild + 1;
         }
     }
-
-    // for (int i = 0; i < spheres.length(); i++) {
-    //     if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
-    //         hitAnything = true;
-    //         closest = tempHit.t;
-    //         hit = tempHit;
-    //     }
-    // }
 
     return hitAnything;
 }

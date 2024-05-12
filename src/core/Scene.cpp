@@ -16,9 +16,18 @@ void Scene::update() {
   }
 
   // add the faces into the gpuObjects vector
+  std::vector<GpuObject> gpuObjects;
   for (auto &face : getFaces()) {
+    gpuObjects.push_back({{face.v0, face.v1, face.v2, 0.0f},
+                          GpuObjectType::Face,
+                          face.materialIdx});
+  }
+  // add the spheres into the gpuObjects vector
+  for (auto &sphere : spheres) {
     gpuObjects.push_back(
-        {{face.v0, face.v1, face.v2, 0.0f}, 1, face.materialIdx});
+        {{sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius},
+         GpuObjectType::Sphere,
+         sphere.materialIdx});
   }
 
   bvh.buildBVH(gpuObjects, getVertices());
