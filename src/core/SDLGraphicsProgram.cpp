@@ -6,7 +6,6 @@
 #include <iostream>
 
 #include "core/Error.hpp"
-#include "rendering/MeshVertex.hpp"
 #include "rendering/Renderer.hpp"
 #include "rendering/Window.hpp"
 
@@ -83,10 +82,6 @@ void SDLGraphicsProgram::input(float deltaTime) {
 void SDLGraphicsProgram::update(float deltaTime) {}
 
 void SDLGraphicsProgram::render() const {
-  // _spheresBuffer.bind();
-  // _vertexBuffer.bind();
-  // _faceBuffer.bind();
-  // _materialBuffer.bind();
   _renderer->render(_scene);
 }
 

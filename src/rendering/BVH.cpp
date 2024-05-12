@@ -70,8 +70,17 @@ void BVH::subdivide(unsigned int nodeIndex,
   int i = node.firstObject;
   int j = node.firstObject + node.numObjects - 1;
   while (i <= j) {
-    AABB aabb = getAABB(_gpuObjects[i], vertices);
-    if (aabb.min[axis] >= splitPos) {
+    const auto &object = _gpuObjects[i];
+    glm::vec3 centroid;
+    if (object.type == GpuObjectType::Face) {
+      glm::vec3 v0 = vertices[object.data.x].position;
+      glm::vec3 v1 = vertices[object.data.y].position;
+      glm::vec3 v2 = vertices[object.data.z].position;
+      centroid = (v0 + v1 + v2) / 3.0f;
+    } else {
+      centroid = glm::vec3(object.data.x, object.data.y, object.data.z);
+    }
+    if (centroid[axis] < splitPos) {
       std::swap(_gpuObjects.at(i), _gpuObjects.at(j--));
     } else {
       i++;
@@ -112,12 +121,6 @@ AABB BVH::getAABB(GpuObject &object,
 
     min = glm::min(v0, glm::min(v1, v2));
     max = glm::max(v0, glm::max(v1, v2));
-    // min.x = fminf(fminf(v0.x, v1.x), v2.x);
-    // min.y = fminf(fminf(v0.y, v1.y), v2.y);
-    // min.z = fminf(fminf(v0.z, v1.z), v2.z);
-    // max.x = fmaxf(fmaxf(v0.x, v1.x), v2.x);
-    // max.y = fmaxf(fmaxf(v0.y, v1.y), v2.y);
-    // max.z = fmaxf(fmaxf(v0.z, v1.z), v2.z);
     return {min, max};
   } else /*  if (object.type == GpuObjectType::Sphere) */ {
     glm::vec3 radius = glm::vec3(object.data.w);

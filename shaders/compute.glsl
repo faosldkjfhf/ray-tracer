@@ -118,6 +118,7 @@ float randomNormalDistribution() {
     return rho * cos(theta);
 }
 
+// TODO: doesn't make sense because the normals for the faces are not consistent
 void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.frontFace = dot(ray.direction, outwardNormal) < 0.0;
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
@@ -159,7 +160,7 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     hit.position = ray.origin + ray.direction * t;
     hit.materialIdx = sphere.materialIdx;
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
-    setHitFaceNormal(hit, ray, hit.normal);
+    // setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
 
@@ -193,7 +194,7 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
         hit.position = intersectPoint;
         hit.normal = normal;
         hit.materialIdx = face.materialIdx;
-        setHitFaceNormal(hit, ray, hit.normal);
+        // setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
 
@@ -267,10 +268,6 @@ bool hitBvh(Ray ray, out Hit hit) {
                 }
             }
         }
-        // } else {
-        //     stack[stackSize++] = node.leftChild;
-        //     stack[stackSize++] = node.leftChild + 1;
-        //
 
         if (node.leftChild != -1) {
             stack[stackSize++] = node.leftChild;
@@ -316,7 +313,7 @@ vec3 rayColor(Ray ray) {
     return finalColor;
 }
 
-#define SAMPLES 100
+#define SAMPLES 10
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
