@@ -1,28 +1,21 @@
 #pragma once
 
+#include <vector>
+
+#include "core/Face.hpp"
 #include "core/Object.hpp"
+#include "core/Vertex.hpp"
+#include "rendering/BVH.hpp"
 #include "rendering/Material.hpp"
 #include "rendering/Sphere.hpp"
 
-#include <vector>
-
-struct Vertex {
-  alignas(16) glm::vec3 position;
-};
-
-struct Face {
-  uint32_t v0;
-  uint32_t v1;
-  uint32_t v2;
-  uint32_t materialIdx;
-};
-
 struct Scene {
-  std::vector<Sphere> spheres;
-  std::vector<Object> objects;
-  std::vector<Material> materials;
+    std::vector<Sphere> spheres;
+    std::vector<Object> objects;
+    std::vector<Material> materials;
+    BVH bvh;
 
-  void update();
-  std::vector<Vertex> getVertices() const;
-  std::vector<Face> getFaces() const;
+    void update();
+    std::vector<Vertex> getVertices() const;
+    std::vector<Face> getFaces() const;
 };

@@ -1,41 +1,42 @@
 #pragma once
 
+#include <SDL3/SDL.h>
+
 #include "core/Scene.hpp"
 #include "core/StorageBuffer.hpp"
-
-#include <SDL3/SDL.h>
 
 class Window;
 class Renderer;
 
 class SDLGraphicsProgram {
-public:
-  SDLGraphicsProgram(Window *window, Renderer *renderer);
+   public:
+    SDLGraphicsProgram(Window *window, Renderer *renderer);
 
-  void run();
+    void run();
 
-  void getOpenGLVersionInfo();
+    void getOpenGLVersionInfo();
 
-  // initializing a test scene
-  void init();
+    // initializing a test scene
+    void init();
 
-private:
-  bool _quit = false;
+   private:
+    bool _quit = false;
 
-  // Stored to prevent a large delta time after delays
-  Uint32 _lastTime;
+    // Stored to prevent a large delta time after delays
+    Uint32 _lastTime;
 
-  Window *_window;
-  Renderer *_renderer;
+    Window *_window;
+    Renderer *_renderer;
 
-  Scene _scene;
+    Scene _scene;
 
-  StorageBuffer _spheresBuffer;
-  StorageBuffer _vertexBuffer;
-  StorageBuffer _faceBuffer;
-  StorageBuffer _materialBuffer;
+    StorageBuffer _spheresBuffer;
+    StorageBuffer _vertexBuffer;
+    StorageBuffer _faceBuffer;
+    StorageBuffer _materialBuffer;
+    StorageBuffer _bvhBuffer;
 
-  void input(float deltaTime);
-  void update(float deltaTime);
-  void render() const;
+    void input(float deltaTime);
+    void update(float deltaTime);
+    void render() const;
 };

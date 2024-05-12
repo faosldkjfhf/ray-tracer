@@ -52,6 +52,14 @@ struct Hit {
     uint materialIdx;
 };
 
+struct BVHNode {
+    vec3 aabbMin;
+    vec3 aabbMax;
+    int leftChild;
+    int firstObject;
+    int numObjects;
+};
+
 layout(std430, binding = 1) buffer SphereBuffer {
     Sphere spheres[];
 };
@@ -66,6 +74,10 @@ layout(std430, binding = 3) buffer FaceBuffer {
 
 layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
+};
+
+layout(std430, binding = 5) buffer BVHBuffer {
+    BVHNode bvh[];
 };
 
 float stepRngFloat(inout uint state) {
@@ -104,6 +116,10 @@ float randomNormalDistribution() {
 void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.frontFace = dot(ray.direction, outwardNormal) < 0.0;
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
+}
+
+bool intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax) {
+    return false;
 }
 
 bool hitSphere(Ray ray, Sphere sphere, float tMin, float tMax, out Hit hit) {
