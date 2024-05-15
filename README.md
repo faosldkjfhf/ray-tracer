@@ -12,8 +12,11 @@ Justin Liu and Kevin Liu
   - [x] Diffuse
   - [ ] Metal
   - [ ] Glass
-- [ ] BVH
-- [ ] Load OBJs
+  - [x] Light
+- [x] BVH
+- [x] Load OBJs
 - [x] Move around with camera
 - [ ] Adjust camera angle
-- [ ] Optimize
+- [ ] Accumulator Texture
+- [ ] Optimize (!!)
+  - [ ] Better partitioning for BVH (SAH)
