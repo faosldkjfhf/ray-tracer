@@ -4,11 +4,6 @@
 
 Camera::Camera(int windowWidth, int windowHeight, float fov, float nearPlane,
                float farPlane) {
-  // Looking down along the z-axis initially.
-  // Remember, this is negative because we are looking 'into' the scene.
-  _viewDirection = glm::vec3(0.0f, 0.0f, -1.0f);
-  // For now--our upVector always points up along the y-axis
-  _upVector = glm::vec3(0.0f, 1.0f, 0.0f);
   _projectionMatrix = glm::perspective(glm::radians(fov),
                                        (float)windowWidth / (float)windowHeight,
                                        nearPlane, farPlane);
@@ -41,6 +36,13 @@ void Camera::mouseLook(int mouseX, int mouseY) {
 
   // Update our old position after we have made changes
   _oldMousePosition = newMousePosition;
+}
+
+void Camera::turn(float yaw, float pitch) {
+  _viewDirection = glm::rotate(_viewDirection, glm::radians(yaw), _upVector);
+  glm::vec3 rightVector = glm::cross(_viewDirection, _upVector);
+  _viewDirection =
+      glm::rotate(_viewDirection, glm::radians(pitch), rightVector);
 }
 
 void Camera::moveForward(float speed) { _position += _viewDirection * speed; }

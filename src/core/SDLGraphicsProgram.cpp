@@ -40,7 +40,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
       // Capture the change in the mouse position
       mouseX = e.motion.x;
       mouseY = e.motion.y;
-      // camera.mouseLook(mouseX, mouseY);
+      camera.mouseLook(mouseX, mouseY);
     default:
       break;
     }
@@ -81,9 +81,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
 
 void SDLGraphicsProgram::update(float deltaTime) {}
 
-void SDLGraphicsProgram::render() const {
-  _renderer->render(_scene);
-}
+void SDLGraphicsProgram::render() const { _renderer->render(_scene); }
 
 void SDLGraphicsProgram::run() {
   /*
@@ -134,55 +132,39 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
 void SDLGraphicsProgram::init() {
   // Create some spheres in the scene
 
-  _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
-  // _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5, 3});
-  // _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 2});
+  // Floor
   _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
 
-  // 0. red, 1. green, 2. blue, 3. white light
+  _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
+
+  // Metal sphere
+  _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5f, 4});
+
+  // Glass spheres
+  _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 5});
+  _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.4f, 6});
+
+  // 0. red, 1. green, 2. blue, 3. white light 4. metal
   _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
   _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, MaterialType::LAMBERTIAN});
   _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, MaterialType::LAMBERTIAN});
   _scene.materials.push_back({glm::vec3(1.0f), MaterialType::LIGHT});
+  _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::METAL, 0.1f});
+  _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::GLASS, 1.5f});
+  _scene.materials.push_back(
+      {{1.0f, 1.0f, 1.0f}, MaterialType::GLASS, 1.0f / 1.5f});
 
   // Create some objects in the scene
   Object cube("res/models/cube/cube.obj");
   cube.transform.setPosition(1.0f, 1.0f, -3.0f);
   _scene.objects.push_back(cube);
-  // Mesh mesh;
-  // mesh.vertices.push_back({{-0.5f, -0.5f, -2.0f}});
-  // mesh.vertices.push_back({{0.5f, -0.5f, -1.0f}});
-  // mesh.vertices.push_back({{0.0f, 0.5f, -2.0f}});
-  // mesh.indices.push_back(0);
-  // mesh.indices.push_back(1);
-  // mesh.indices.push_back(2);
-  // _scene.objects.push_back({mesh});
-  // _scene.objects[0].material = _scene.materials[2];
-  //
-  // Mesh mesh2;
-  // mesh2.vertices.push_back({{1.0f, -0.5f, -1.5f}});
-  // mesh2.vertices.push_back({{0.5f, -0.5f, -2.0f}});
-  // mesh2.vertices.push_back({{1.0f, 0.5f, -2.0f}});
-  // mesh2.indices.push_back(0);
-  // mesh2.indices.push_back(1);
-  // mesh2.indices.push_back(2);
-  // _scene.objects.push_back({mesh2});
-  // _scene.objects[1].material = _scene.materials[0];
 
   _scene.update();
 
   // Create the storage buffers
-  const auto &gpuObjects = _scene.bvh.getGpuObjects();
-  const auto &vertices = _scene.getVertices();
-  const auto &bvhNodes = _scene.bvh.getBVHNodes();
-
-  _gpuObjectBuffer.createStorageBuffer(gpuObjects, GL_STATIC_DRAW, 1);
-  _vertexBuffer.createStorageBuffer(vertices, GL_STATIC_DRAW, 2);
+  _gpuObjectBuffer.createStorageBuffer(_scene.bvh.getGpuObjects(),
+                                       GL_STATIC_DRAW, 1);
+  _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 2);
   _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 3);
-  _bvhBuffer.createStorageBuffer(bvhNodes, GL_STATIC_DRAW, 4);
-
-  _gpuObjectBuffer.updateStorageBuffer(gpuObjects);
-  _vertexBuffer.updateStorageBuffer(vertices);
-  _materialBuffer.updateStorageBuffer(_scene.materials);
-  _bvhBuffer.updateStorageBuffer(bvhNodes);
+  _bvhBuffer.createStorageBuffer(_scene.bvh.getBVHNodes(), GL_STATIC_DRAW, 4);
 }

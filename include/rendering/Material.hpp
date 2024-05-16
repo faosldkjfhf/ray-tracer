@@ -6,9 +6,10 @@ enum class MaterialType { LAMBERTIAN, METAL, GLASS, LIGHT };
 struct Material {
   alignas(16) glm::vec3 color;
   MaterialType type;
+  alignas(4) float typeData{0.0f}; // Metal: fuzziness, Glass: refraction index
 
   bool operator==(const Material &other) const {
-    return color == other.color && type == other.type;
+    return color == other.color && type == other.type && typeData == other.typeData;
   }
 
   static Material red() {

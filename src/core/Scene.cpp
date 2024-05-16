@@ -22,6 +22,7 @@ void Scene::update() {
                           GpuObjectType::Face,
                           face.materialIdx});
   }
+
   // add the spheres into the gpuObjects vector
   for (auto &sphere : spheres) {
     gpuObjects.push_back(

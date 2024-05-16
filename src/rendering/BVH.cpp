@@ -19,29 +19,29 @@ void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
   subdivide(0, vertices);
   _nodes.resize(_nodesUsed);
 
-  for (int i = 0; i < _nodes.size(); i++) {
-    std::cout << "Node " << i << ":\n";
-    std::cout << "  aabbMin: " << _nodes[i].aabbMin.x << " "
-              << _nodes[i].aabbMin.y << " " << _nodes[i].aabbMin.z << "\n";
-    std::cout << "  aabbMax: " << _nodes[i].aabbMax.x << " "
-              << _nodes[i].aabbMax.y << " " << _nodes[i].aabbMax.z << "\n";
-    std::cout << "  leftChild: " << _nodes[i].leftChild << "\n";
-    std::cout << "  firstObject: " << _nodes[i].firstObject << "\n";
-    std::cout << "  numObjects: " << _nodes[i].numObjects << "\n";
-    for (int j = _nodes[i].firstObject;
-         j < _nodes[i].firstObject + _nodes[i].numObjects; j++) {
-      std::cout << "    Object " << j << ":\n";
-      if (_gpuObjects[j].type == GpuObjectType::Face) {
-        std::cout << "      Face: " << _gpuObjects[j].data.x << " "
-                  << _gpuObjects[j].data.y << " " << _gpuObjects[j].data.z
-                  << "\n";
-      } else {
-        std::cout << "      Sphere: " << _gpuObjects[j].data.x << " "
-                  << _gpuObjects[j].data.y << " " << _gpuObjects[j].data.z
-                  << " " << _gpuObjects[j].data.w << "\n";
-      }
-    }
-  }
+  // for (int i = 0; i < _nodes.size(); i++) {
+  //   std::cout << "Node " << i << ":\n";
+  //   std::cout << "  aabbMin: " << _nodes[i].aabbMin.x << " "
+  //             << _nodes[i].aabbMin.y << " " << _nodes[i].aabbMin.z << "\n";
+  //   std::cout << "  aabbMax: " << _nodes[i].aabbMax.x << " "
+  //             << _nodes[i].aabbMax.y << " " << _nodes[i].aabbMax.z << "\n";
+  //   std::cout << "  leftChild: " << _nodes[i].leftChild << "\n";
+  //   std::cout << "  firstObject: " << _nodes[i].firstObject << "\n";
+  //   std::cout << "  numObjects: " << _nodes[i].numObjects << "\n";
+  //   for (int j = _nodes[i].firstObject;
+  //        j < _nodes[i].firstObject + _nodes[i].numObjects; j++) {
+  //     std::cout << "    Object " << j << ":\n";
+  //     if (_gpuObjects[j].type == GpuObjectType::Face) {
+  //       std::cout << "      Face: " << _gpuObjects[j].data.x << " "
+  //                 << _gpuObjects[j].data.y << " " << _gpuObjects[j].data.z
+  //                 << "\n";
+  //     } else {
+  //       std::cout << "      Sphere: " << _gpuObjects[j].data.x << " "
+  //                 << _gpuObjects[j].data.y << " " << _gpuObjects[j].data.z
+  //                 << " " << _gpuObjects[j].data.w << "\n";
+  //     }
+  //   }
+  // }
 }
 
 void BVH::updateNodeBounds(unsigned int nodeIndex,

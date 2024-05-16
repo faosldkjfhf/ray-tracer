@@ -25,6 +25,7 @@ public:
 
   // Move the camera around
   void mouseLook(int mouseX, int mouseY);
+  void turn(float yaw, float pitch);
   void moveForward(float speed);
   void moveBackward(float speed);
   void moveLeft(float speed);
@@ -39,15 +40,23 @@ public:
   glm::vec3 &getPosition() { return _position; }
   const glm::vec3 &getPosition() const { return _position; }
 
+  // Get the direction the camera is looking
+  glm::vec3 &getViewDirection() { return _viewDirection; }
+  const glm::vec3 &getViewDirection() const { return _viewDirection; }
+
+  // Get the up vector for the camera
+  glm::vec3 &getUpVector() { return _upVector; }
+  const glm::vec3 &getUpVector() const { return _upVector; }
+
 private:
   // Track the old mouse position
   glm::vec2 _oldMousePosition;
   // Where is our camera positioned
   glm::vec3 _position{0.0f, 0.0f, 0.0f};
   // What direction is the camera looking
-  glm::vec3 _viewDirection;
+  glm::vec3 _viewDirection{0.0f, 0.0f, -1.0f};
   // Which direction is 'up' in our world
-  glm::vec3 _upVector;
+  glm::vec3 _upVector{0.0f, 1.0f, 0.0f};
   // The projection matrix for our camera
   glm::mat4 _projectionMatrix;
 };

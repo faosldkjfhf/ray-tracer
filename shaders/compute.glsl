@@ -7,10 +7,18 @@ layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
+layout(location = 1) uniform vec3 u_CameraDirection;
+layout(location = 2) uniform vec3 u_CameraUp;
 
 struct Ray {
     vec3 origin;
     vec3 direction;
+};
+
+struct ONB {
+    vec3 u;
+    vec3 v;
+    vec3 w;
 };
 
 #define LAMBERTIAN 0
@@ -21,6 +29,7 @@ struct Ray {
 struct Material {
     vec3 albedo;
     uint type;
+    float typeData; // Metal: fuzziness; Glass: refraction index
 };
 
 // struct Sphere {
@@ -65,17 +74,9 @@ layout(std430, binding = 1) buffer ObjectBuffer {
     Object objects[];
 };
 
-// layout(std430, binding = 1) buffer SphereBuffer {
-//     Sphere spheres[];
-// };
-
 layout(std430, binding = 2) buffer VertexBuffer {
     vec3 vertices[];
 };
-
-// layout(std430, binding = 3) buffer FaceBuffer {
-//     Face faces[];
-// };
 
 layout(std430, binding = 3) buffer MaterialBuffer {
     Material materials[];
@@ -118,14 +119,12 @@ float randomNormalDistribution() {
     return rho * cos(theta);
 }
 
-// TODO: doesn't make sense because the normals for the faces are not consistent
 void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.frontFace = dot(ray.direction, outwardNormal) < 0.0;
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
 }
 
 vec2 intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax, out float t) {
-    // https://tavianator.com/2011/ray_box.html
     vec3 tMin = (boxMin - ray.origin) / ray.direction;
     vec3 tMax = (boxMax - ray.origin) / ray.direction;
     vec3 t1 = min(tMin, tMax);
@@ -160,7 +159,7 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     hit.position = ray.origin + ray.direction * t;
     hit.materialIdx = sphere.materialIdx;
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
-    // setHitFaceNormal(hit, ray, hit.normal);
+    setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
 
@@ -192,9 +191,9 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
             (dotCross0 <= 0.0 && dotCross1 <= 0.0 && dotCross2 <= 0.0)) {
         hit.t = t;
         hit.position = intersectPoint;
-        hit.normal = normal;
+        hit.normal = normalize(normal);
         hit.materialIdx = face.materialIdx;
-        // setHitFaceNormal(hit, ray, hit.normal);
+        setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
 
@@ -278,12 +277,50 @@ bool hitBvh(Ray ray, out Hit hit) {
     return hitAnything;
 }
 
+vec3 reflect(vec3 v, vec3 n) {
+    return v - 2.0 * dot(v, n) * n;
+}
+
+vec3 refract(vec3 uv, vec3 n, float etaiOverEtat) {
+    float cosTheta = min(dot(-uv, n), 1.0);
+    vec3 rOutPerp = etaiOverEtat * (uv + cosTheta * n);
+    vec3 rOutParallel = -sqrt(1.0 - dot(rOutPerp, rOutPerp)) * n;
+    return rOutPerp + rOutParallel;
+}
+
+float reflectance(float cosine, float refIdx) {
+    float r0 = (1.0 - refIdx) / (1.0 + refIdx);
+    r0 = r0 * r0;
+    return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
+}
+
 bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     albedo = materials[hit.materialIdx].albedo;
 
     scattered.origin = hit.position;
-    // scattered.direction = normalize(hit.normal + randomOnUnitSphere());
-    scattered.direction = normalize(hit.normal + randomOnHemisphere(hit.normal));
+
+    uint type = materials[hit.materialIdx].type;
+    if (type == LAMBERTIAN) {
+        scattered.direction = normalize(hit.normal + randomOnUnitSphere());
+    } else if (type == METAL) {
+        scattered.direction = reflect(scattered.direction, hit.normal);
+        scattered.direction += materials[hit.materialIdx].typeData * randomOnUnitSphere();
+    } else if (type == GLASS) {
+        albedo = vec3(1.0);
+        float refractionIndex = materials[hit.materialIdx].typeData;
+        float ri = hit.frontFace ? 1.0 / refractionIndex : refractionIndex;
+        float cosTheta = min(dot(-scattered.direction, hit.normal), 1.0);
+        float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+        bool cannotRefract = ri * sinTheta > 1.0;
+        if (cannotRefract || reflectance(cosTheta, ri) > rand()) {
+            scattered.direction = reflect(scattered.direction, hit.normal);
+        } else {
+            scattered.direction = refract(scattered.direction, hit.normal, ri);
+        }
+    }
+
+    scattered.direction = normalize(scattered.direction);
 
     return materials[hit.materialIdx].type == LIGHT;
 }
@@ -313,6 +350,14 @@ vec3 rayColor(Ray ray) {
     return finalColor;
 }
 
+ONB createONB(vec3 vec, vec3 up) {
+    ONB onb;
+    onb.w = normalize(vec);
+    onb.u = normalize(cross(onb.w, up));
+    onb.v = cross(onb.u, onb.w);
+    return onb;
+}
+
 #define SAMPLES 10
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
@@ -324,10 +369,18 @@ void main() {
     float viewportWidth = imageSize.x / imageSize.y * viewportHeight;
     float focalLength = 1.0;
 
+    // Calculate the uvw basis
+    ONB onb = createONB(u_CameraDirection, u_CameraUp);
+
+    // Calculate the vectors across the horizontal and vertical viewport edges
+    vec3 horizontal = onb.u * viewportWidth;
+    vec3 vertical = onb.v * viewportHeight;
+
     // Position of the camera
     vec3 origin = u_CameraPosition;
+
     // Upper left corner of the viewport, (0,0) is at top left corner
-    vec3 upperLeftCorner = origin - vec3(viewportWidth / 2.0, viewportHeight / 2.0, focalLength);
+    vec3 upperLeftCorner = origin + (focalLength * onb.w) - (horizontal / 2.0) - (vertical / 2.0);
 
     // Get the pixel's position in the image
     vec2 uv = (gl_GlobalInvocationID.xy) / imageSize.xy;
@@ -339,7 +392,8 @@ void main() {
         vec2 sampleUv = uv + offset / imageSize;
         Ray ray;
         ray.origin = origin;
-        ray.direction = upperLeftCorner + vec3(sampleUv.x * viewportWidth, sampleUv.y * viewportHeight, 0.0) - origin;
+        // ray.direction = upperLeftCorner + vec3(sampleUv.x * viewportWidth, sampleUv.y * viewportHeight, 0.0) - origin;
+        ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
         ray.direction = normalize(ray.direction);
         // Get the color of the pixel at where the ray intersects the scene
         colorAccumulator += rayColor(ray);
