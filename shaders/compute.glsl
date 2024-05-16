@@ -15,6 +15,14 @@ struct Ray {
     vec3 direction;
 };
 
+struct Hit {
+    float t;
+    vec3 position;
+    vec3 normal;
+    bool frontFace;
+    uint materialIdx;
+};
+
 struct ONB {
     vec3 u;
     vec3 v;
@@ -51,14 +59,6 @@ struct Material {
 struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
     uint type; // 0: Triangle/Face, 1: Sphere
-    uint materialIdx;
-};
-
-struct Hit {
-    float t;
-    vec3 position;
-    vec3 normal;
-    bool frontFace;
     uint materialIdx;
 };
 
