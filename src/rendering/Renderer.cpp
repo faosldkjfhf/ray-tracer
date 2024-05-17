@@ -56,7 +56,6 @@ void Renderer::render(const Scene &scene) const {
   _shader.use();
   // _screenQuadLayout.bind();
   // _texture.bind(_shader, 0);
-
   glDrawElements(GL_TRIANGLES, _screenQuad.indices.size(), GL_UNSIGNED_INT,
                  nullptr);
 
