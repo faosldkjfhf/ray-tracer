@@ -41,6 +41,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
       mouseX = e.motion.x;
       mouseY = e.motion.y;
       camera.mouseLook(mouseX, mouseY);
+      _renderer->setFrameCount(0);
     default:
       break;
     }
@@ -53,21 +54,27 @@ void SDLGraphicsProgram::input(float deltaTime) {
   // Update our position of the camera
   if (state[SDL_SCANCODE_W]) {
     camera.moveForward(moveSpeed);
+      _renderer->setFrameCount(0);
   }
   if (state[SDL_SCANCODE_S]) {
-    camera.moveBackward(moveSpeed);
+    camera.moveBackward(moveSpeed); 
+      _renderer->setFrameCount(0);
   }
   if (state[SDL_SCANCODE_A]) {
     camera.moveLeft(moveSpeed);
+      _renderer->setFrameCount(0);
   }
   if (state[SDL_SCANCODE_D]) {
     camera.moveRight(moveSpeed);
+      _renderer->setFrameCount(0);
   }
   if (state[SDL_SCANCODE_SPACE]) {
     camera.moveUp(moveSpeed);
+      _renderer->setFrameCount(0);
   }
   if (state[SDL_SCANCODE_Q]) {
     camera.moveDown(moveSpeed);
+      _renderer->setFrameCount(0);
   }
 
   // Toggle polygon mode
@@ -81,7 +88,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
 
 void SDLGraphicsProgram::update(float deltaTime) {}
 
-void SDLGraphicsProgram::render() const { _renderer->render(_scene); }
+void SDLGraphicsProgram::render() const { _renderer->render(_scene); _renderer->setFrameCount(_renderer->getFrameCount() + 1); }
 
 void SDLGraphicsProgram::run() {
   /*

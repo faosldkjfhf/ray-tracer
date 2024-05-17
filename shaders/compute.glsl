@@ -9,6 +9,7 @@ layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
 layout(location = 1) uniform vec3 u_CameraDirection;
 layout(location = 2) uniform vec3 u_CameraUp;
+layout(location = 3) uniform int u_FrameCount;
 
 struct Ray {
     vec3 origin;
@@ -93,7 +94,7 @@ float stepRngFloat(inout uint state) {
     return float(word) / 4294967296.0f;
 }
 
-uint rngState = (600 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y);
+uint rngState = (600 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y) + (u_FrameCount.x * 63234);
 float rand() {
     return stepRngFloat(rngState);
 }
@@ -401,7 +402,9 @@ void main() {
 
     vec3 pixelColor = colorAccumulator / SAMPLES;
 
-    vec4 value = vec4(pixelColor, 1.0);
+    vec4 oldColor = imageLoad(imgOutput, ivec2(gl_GlobalInvocationID.xy)).rgba;
+    float weight = 1.0 / (u_FrameCount + 1.0);
+    vec4 finalColor = vec4((oldColor.xyz * (1.0 - weight) + pixelColor.xyz * weight), 1.0);
 
-    imageStore(imgOutput, ivec2(gl_GlobalInvocationID.xy), value);
+    imageStore(imgOutput, ivec2(gl_GlobalInvocationID.xy), finalColor);
 }

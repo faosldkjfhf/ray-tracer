@@ -23,9 +23,12 @@ public:
   void flipPolygonMode();
 
   Camera &getCamera() { return _camera; }
+  void setFrameCount(const int &frameCount) { _frameCount = frameCount; }
+  int getFrameCount() const { return _frameCount; }
 
 private:
   Camera _camera;
+  int _frameCount = 0;
 
   Shader _shader;
   Shader _computeShader;
