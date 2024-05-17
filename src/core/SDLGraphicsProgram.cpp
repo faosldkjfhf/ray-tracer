@@ -160,9 +160,9 @@ void SDLGraphicsProgram::init() {
   _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, MaterialType::LAMBERTIAN});
   _scene.materials.push_back({glm::vec3(1.0f), MaterialType::LIGHT});
   _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::METAL, 0.1f});
-  _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::GLASS, 1.5f});
+  _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.5f});
   _scene.materials.push_back(
-      {{1.0f, 1.0f, 1.0f}, MaterialType::GLASS, 1.0f / 1.5f});
+      {{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.0f / 1.5f});
 
   // Create some objects in the scene
   Object cube("res/models/cube/cube.obj");

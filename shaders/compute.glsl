@@ -32,7 +32,7 @@ struct ONB {
 
 #define LAMBERTIAN 0
 #define METAL 1
-#define GLASS 2
+#define DIELECTRIC 2
 #define LIGHT 3
 
 struct Material {
@@ -306,7 +306,7 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     } else if (type == METAL) {
         scattered.direction = reflect(scattered.direction, hit.normal);
         scattered.direction += materials[hit.materialIdx].typeData * randomOnUnitSphere();
-    } else if (type == GLASS) {
+    } else if (type == DIELECTRIC) {
         albedo = vec3(1.0);
         float refractionIndex = materials[hit.materialIdx].typeData;
         float ri = hit.frontFace ? 1.0 / refractionIndex : refractionIndex;
