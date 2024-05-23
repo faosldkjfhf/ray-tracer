@@ -37,8 +37,8 @@ public:
   void lookAt(const glm::vec3 &target);
 
   // Setters
-  template <typename... Args> void setPosition(Args... args) {
-    _position = glm::vec3(args...);
+  template <typename... Args> void setPosition(Args &&...args) {
+    _position = glm::vec3(std::forward<Args>(args)...);
   }
   void setViewDirection(const glm::vec3 &viewDirection) {
     _viewDirection = viewDirection;

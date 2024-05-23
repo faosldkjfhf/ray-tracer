@@ -11,7 +11,6 @@
 
 SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
     : _window(window), _renderer(renderer) {
-  // init();
   initCornellBox();
   initBuffers();
 };
@@ -101,10 +100,10 @@ void SDLGraphicsProgram::run() {
                         _window->getHeight() / 2);*/
   getOpenGLVersionInfo();
 
-  _spheresBuffer.bind();
+  _gpuObjectBuffer.bind();
   _vertexBuffer.bind();
-  _faceBuffer.bind();
   _materialBuffer.bind();
+  _bvhBuffer.bind();
 
   _lastTime = SDL_GetTicks();
   int frameCount = 0;
@@ -141,48 +140,10 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
             << "\n";
 }
 
-// void SDLGraphicsProgram::init() {
-//   // Create some spheres in the scene
-//
-//   // Floor
-//   _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
-//
-//   _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
-//
-//   // Metal sphere
-//   _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5f, 4});
-//
-//   // Glass spheres
-//   _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 5});
-//   _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.4f, 6});
-//
-//   // 0. red, 1. green, 2. blue, 3. white light 4. metal
-//   _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
-//   _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, MaterialType::LAMBERTIAN});
-//   _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, MaterialType::LAMBERTIAN});
-//   _scene.materials.push_back({glm::vec3(1.0f), MaterialType::LIGHT});
-//   _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::METAL,
-//   0.1f}); _scene.materials.push_back(
-//       {{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.5f});
-//   _scene.materials.push_back(
-//       {{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.0f / 1.5f});
-//
-//   // Create some objects in the scene
-//   Object cube("res/models/cube/cube.obj");
-//   cube.transform.setPosition(1.0f, 1.0f, -3.0f);
-//   _scene.objects.push_back(cube);
-// }
-
 void SDLGraphicsProgram::initCornellBox() {
-  /* world.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0),
-    vec3(0,0,555), green)); world.add(make_shared<quad>(point3(0,0,0),
-    vec3(0,555,0), vec3(0,0,555), red)); world.add(make_shared<quad>(point3(343,
-    554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
-    world.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555),
-    white)); world.add(make_shared<quad>(point3(555,555,555), vec3(-555,0,0),
-    vec3(0,0,-555), white)); world.add(make_shared<quad>(point3(0,0,555),
-    vec3(555,0,0), vec3(0,555,0), white));
-    */
+  Material white = Material::lambertian(glm::vec3(0.73f));
+  Material red = Material::lambertian(glm::vec3(0.65f, 0.05f, 0.05f));
+  Material green = Material::lambertian(glm::vec3(0.12f, 0.45f, 0.15f));
 
   // Floor
   Mesh floor;
@@ -191,7 +152,7 @@ void SDLGraphicsProgram::initCornellBox() {
                     {{555.0f, 0.0f, -555.0f}},
                     {{0.0f, 0.0f, -555.0f}}};
   floor.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({floor});
+  _scene.objects.push_back({floor, white});
 
   // Ceiling
   Mesh ceiling;
@@ -200,7 +161,7 @@ void SDLGraphicsProgram::initCornellBox() {
                       {{555.0f, 555.0f, -555.0f}},
                       {{0.0f, 555.0f, -555.0f}}};
   ceiling.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({ceiling});
+  _scene.objects.push_back({ceiling, white});
 
   // Back wall
   Mesh backWall;
@@ -209,7 +170,7 @@ void SDLGraphicsProgram::initCornellBox() {
                        {{555.0f, 555.0f, -555.0f}},
                        {{0.0f, 555.0f, -555.0f}}};
   backWall.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({backWall});
+  _scene.objects.push_back({backWall, white});
 
   // Left wall
   Mesh leftWall;
@@ -218,7 +179,7 @@ void SDLGraphicsProgram::initCornellBox() {
                        {{0.0f, 555.0f, -555.0f}},
                        {{0.0f, 555.0f, 0.0f}}};
   leftWall.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({leftWall, Material::red()});
+  _scene.objects.push_back({leftWall, red});
 
   // Right wall
   Mesh rightWall;
@@ -227,7 +188,7 @@ void SDLGraphicsProgram::initCornellBox() {
                         {{555.0f, 555.0f, -555.0f}},
                         {{555.0f, 555.0f, 0.0f}}};
   rightWall.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({rightWall, Material::green()});
+  _scene.objects.push_back({rightWall, green});
 
   // Light
   Mesh light;
@@ -239,6 +200,13 @@ void SDLGraphicsProgram::initCornellBox() {
   };
   light.indices = {0, 1, 2, 0, 2, 3};
   _scene.objects.push_back({light, Material::light()});
+
+  // Short block
+  // Mesh shortBlock;
+  // shortBlock.vertices = {
+  //     // Front
+  //   {{130.0f, 0.0f, }}
+  // };
 
   // Add some objects
   _scene.spheres.push_back(

@@ -29,12 +29,6 @@ Renderer::Renderer(const Window &window)
 }
 
 void Renderer::render(const Scene &scene) const {
-  // Enable depth test and face culling (to fix shadow peter panning)
-  /*
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  */
-
   _computeShader.use();
 
   // Pass in scene data as uniforms
@@ -42,15 +36,13 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.setVec3("u_CameraDirection", _camera.getViewDirection());
   _computeShader.setVec3("u_CameraUp", _camera.getUpVector());
   _computeShader.setUInt("u_FrameCount", _frameCount);
+
   glCall(glDispatchCompute((GLuint)_window->getWidth() / 32,
                            (GLuint)_window->getHeight() / 32, 1));
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
-
-  // Reset viewport
-  // glViewport(0, 0, _window->getWidth(), _window->getHeight());
 
   // Render the screen quad
   _shader.use();

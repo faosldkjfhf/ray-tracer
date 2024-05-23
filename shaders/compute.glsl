@@ -3,7 +3,7 @@
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 #define PI 3.14159265358979323846
-#define MAX_BOUNCES 4
+#define MAX_BOUNCES 10
 
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
@@ -38,21 +38,8 @@ struct ONB {
 struct Material {
     vec3 albedo;
     uint type;
-    float typeData; // Metal: fuzziness; Glass: refraction index
+    float typeData; // Metal: fuzziness; Glass: refraction index; Light: emission strength
 };
-
-// struct Sphere {
-//     vec3 center;
-//     float radius;
-//     uint materialIdx;
-// };
-
-// struct Face {
-//     uint v0;
-//     uint v1;
-//     uint v2;
-//     uint materialIdx;
-// };
 
 #define TYPE_FACE 0
 #define TYPE_SPHERE 1
@@ -298,8 +285,6 @@ float reflectance(float cosine, float refIdx) {
 bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     albedo = materials[hit.materialIdx].albedo;
 
-    scattered.origin = hit.position;
-
     uint type = materials[hit.materialIdx].type;
     if (type == LAMBERTIAN) {
         scattered.direction = normalize(hit.normal + randomOnUnitSphere());
@@ -307,7 +292,6 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
         scattered.direction = reflect(scattered.direction, hit.normal);
         scattered.direction += materials[hit.materialIdx].typeData * randomOnUnitSphere();
     } else if (type == DIELECTRIC) {
-        albedo = vec3(1.0);
         float refractionIndex = materials[hit.materialIdx].typeData;
         float ri = hit.frontFace ? 1.0 / refractionIndex : refractionIndex;
         float cosTheta = min(dot(-scattered.direction, hit.normal), 1.0);
@@ -319,11 +303,15 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
         } else {
             scattered.direction = refract(scattered.direction, hit.normal, ri);
         }
+    } else if (type == LIGHT) {
+        albedo *= materials[hit.materialIdx].typeData;
+        return false;
     }
 
+    scattered.origin = hit.position;
     scattered.direction = normalize(scattered.direction);
 
-    return materials[hit.materialIdx].type == LIGHT;
+    return true;
 }
 
 vec3 rayColor(Ray ray) {
@@ -333,10 +321,9 @@ vec3 rayColor(Ray ray) {
     for (int i = 0; i < MAX_BOUNCES; i++) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
-            bool emits = scatter(hit, albedo, ray);
+            bool scatters = scatter(hit, albedo, ray);
             finalColor *= albedo;
-            if (emits) {
-                finalColor *= 10.0;
+            if (!scatters) {
                 break;
             }
         } else {
@@ -359,7 +346,7 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 1
+#define SAMPLES 5
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
@@ -381,7 +368,7 @@ void main() {
     vec3 origin = u_CameraPosition;
 
     // Upper left corner of the viewport, (0,0) is at top left corner
-    vec3 upperLeftCorner = origin + (focalLength * onb.w) - (horizontal / 2.0) - (vertical / 2.0);
+    vec3 upperLeftCorner = origin - (horizontal / 2.0) - (vertical / 2.0) + (focalLength * onb.w);
 
     // Get the pixel's position in the image
     vec2 uv = (gl_GlobalInvocationID.xy) / imageSize.xy;
@@ -389,7 +376,7 @@ void main() {
     // anti-aliasing
     vec3 colorAccumulator = vec3(0.0);
     for (int i = 0; i < SAMPLES; i++) {
-        vec2 offset = vec2(rand(-1.0, 1.0), rand(-1.0, 1.0));
+        vec2 offset = vec2(rand(-0.5, 0.5), rand(-0.5, 0.5));
         vec2 sampleUv = uv + offset / imageSize;
         Ray ray;
         ray.origin = origin;

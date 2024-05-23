@@ -29,15 +29,21 @@ struct Material {
     return Material{glm::vec3(1.0f), MaterialType::LAMBERTIAN};
   }
 
-  static Material light() {
-    return Material{glm::vec3(1.0f), MaterialType::LIGHT};
+  static Material lambertian(const glm::vec3 &color) {
+    return Material{color, MaterialType::LAMBERTIAN};
   }
 
-  static Material metal(const glm::vec3 &color, float fuzziness) {
+  static Material metal(const glm::vec3 &color = glm::vec3(1.0f),
+                        float fuzziness = 0.0f) {
     return Material{color, MaterialType::METAL, fuzziness};
   }
 
   static Material dielectric(float refractionIndex) {
     return Material{glm::vec3(1.0f), MaterialType::DIELECTRIC, refractionIndex};
+  }
+
+  static Material light(glm::vec3 color = glm::vec3(1.0f),
+                        float intensity = 15.0f) {
+    return Material{color, MaterialType::LIGHT, intensity};
   }
 };

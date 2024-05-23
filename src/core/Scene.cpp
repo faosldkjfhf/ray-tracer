@@ -12,8 +12,6 @@ void Scene::update() {
     auto materialIt = std::find(materials.begin(), materials.end(), material);
     if (materialIt == materials.end()) {
       materials.push_back(material);
-      std::cout << "Added material to scene, now has " << materials.size()
-                << " materials\n";
     }
   }
 
