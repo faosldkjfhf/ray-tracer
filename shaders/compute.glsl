@@ -3,13 +3,13 @@
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 #define PI 3.14159265358979323846
-#define MAX_BOUNCES 10
+#define MAX_BOUNCES 4
 
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
 layout(location = 1) uniform vec3 u_CameraDirection;
 layout(location = 2) uniform vec3 u_CameraUp;
-layout(location = 3) uniform int u_FrameCount;
+layout(location = 3) uniform uint u_FrameCount;
 
 struct Ray {
     vec3 origin;
@@ -94,7 +94,7 @@ float stepRngFloat(inout uint state) {
     return float(word) / 4294967296.0f;
 }
 
-uint rngState = (600 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y) + (u_FrameCount.x * 63234);
+uint rngState = (600 * gl_GlobalInvocationID.x + gl_GlobalInvocationID.y) * (u_FrameCount + 1);
 float rand() {
     return stepRngFloat(rngState);
 }
@@ -336,14 +336,14 @@ vec3 rayColor(Ray ray) {
             bool emits = scatter(hit, albedo, ray);
             finalColor *= albedo;
             if (emits) {
-                // finalColor *= 5.0;
+                finalColor *= 10.0;
                 break;
             }
         } else {
-            vec3 unitDirection = normalize(ray.direction);
-            float t = 0.5 * (unitDirection.y + 1.0);
-            finalColor *= (1.0 - t) * vec3(1.0) + t * vec3(0.5, 0.7, 1.0);
-            // finalColor *= vec3(0.5);
+            // vec3 unitDirection = normalize(ray.direction);
+            // float t = 0.5 * (unitDirection.y + 1.0);
+            // finalColor *= (1.0 - t) * vec3(1.0) + t * vec3(0.5, 0.7, 1.0);
+            finalColor *= 0.0;
             break;
         }
     }
@@ -359,7 +359,7 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 10
+#define SAMPLES 1
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
@@ -389,11 +389,10 @@ void main() {
     // anti-aliasing
     vec3 colorAccumulator = vec3(0.0);
     for (int i = 0; i < SAMPLES; i++) {
-        vec2 offset = vec2(rand(-0.5, 0.5), rand(-0.5, 0.5));
+        vec2 offset = vec2(rand(-1.0, 1.0), rand(-1.0, 1.0));
         vec2 sampleUv = uv + offset / imageSize;
         Ray ray;
         ray.origin = origin;
-        // ray.direction = upperLeftCorner + vec3(sampleUv.x * viewportWidth, sampleUv.y * viewportHeight, 0.0) - origin;
         ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
         ray.direction = normalize(ray.direction);
         // Get the color of the pixel at where the ray intersects the scene
@@ -402,9 +401,11 @@ void main() {
 
     vec3 pixelColor = colorAccumulator / SAMPLES;
 
-    vec4 oldColor = imageLoad(imgOutput, ivec2(gl_GlobalInvocationID.xy)).rgba;
-    float weight = 1.0 / (u_FrameCount + 1.0);
-    vec4 finalColor = vec4((oldColor.xyz * (1.0 - weight) + pixelColor.xyz * weight), 1.0);
+    // vec4 oldColor = imageLoad(imgOutput, ivec2(gl_GlobalInvocationID.xy)).rgba
+    // float weight = 1.0 / (u_FrameCount + 1.0);
+    // vec4 finalColor = vec4((oldColor.xyz * (1.0 - weight) + pixelColor.xyz * weight), 1.0);
+    vec4 oldColor = imageLoad(imgOutput, ivec2(gl_GlobalInvocationID.xy)).rgba * min(1.0, u_FrameCount);
+    vec4 finalColor = (oldColor * u_FrameCount + vec4(pixelColor, 1.0)) / (u_FrameCount + 1.0);
 
     imageStore(imgOutput, ivec2(gl_GlobalInvocationID.xy), finalColor);
 }

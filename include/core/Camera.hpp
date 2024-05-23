@@ -36,6 +36,15 @@ public:
   // Look at a target
   void lookAt(const glm::vec3 &target);
 
+  // Setters
+  template <typename... Args> void setPosition(Args... args) {
+    _position = glm::vec3(args...);
+  }
+  void setViewDirection(const glm::vec3 &viewDirection) {
+    _viewDirection = viewDirection;
+  }
+  void setUpVector(const glm::vec3 &upVector) { _upVector = upVector; }
+
   // Get the position of the camera
   glm::vec3 &getPosition() { return _position; }
   const glm::vec3 &getPosition() const { return _position; }

@@ -41,7 +41,7 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.setVec3("u_CameraPosition", _camera.getPosition());
   _computeShader.setVec3("u_CameraDirection", _camera.getViewDirection());
   _computeShader.setVec3("u_CameraUp", _camera.getUpVector());
-  _computeShader.setInt("u_FrameCount", _frameCount);
+  _computeShader.setUInt("u_FrameCount", _frameCount);
   glCall(glDispatchCompute((GLuint)_window->getWidth() / 32,
                            (GLuint)_window->getHeight() / 32, 1));
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -54,12 +54,8 @@ void Renderer::render(const Scene &scene) const {
 
   // Render the screen quad
   _shader.use();
-  // _screenQuadLayout.bind();
-  // _texture.bind(_shader, 0);
   glDrawElements(GL_TRIANGLES, _screenQuad.indices.size(), GL_UNSIGNED_INT,
                  nullptr);
-
-  // Increment frame count
 }
 
 void Renderer::flipPolygonMode() {

@@ -11,13 +11,15 @@
 
 SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
     : _window(window), _renderer(renderer) {
-  init();
+  // init();
+  initCornellBox();
+  initBuffers();
 };
 
 void SDLGraphicsProgram::input(float deltaTime) {
   int mouseY = _window->getHeight() / 2;
   int mouseX = _window->getWidth() / 2;
-  float moveSpeed = 5.0f * deltaTime;
+  float moveSpeed = 50.0f * deltaTime;
   Camera &camera = _renderer->getCamera();
 
   // Event handler that handles various events in SDL
@@ -139,39 +141,124 @@ void SDLGraphicsProgram::getOpenGLVersionInfo() {
             << "\n";
 }
 
-void SDLGraphicsProgram::init() {
-  // Create some spheres in the scene
+// void SDLGraphicsProgram::init() {
+//   // Create some spheres in the scene
+//
+//   // Floor
+//   _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
+//
+//   _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
+//
+//   // Metal sphere
+//   _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5f, 4});
+//
+//   // Glass spheres
+//   _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 5});
+//   _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.4f, 6});
+//
+//   // 0. red, 1. green, 2. blue, 3. white light 4. metal
+//   _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
+//   _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, MaterialType::LAMBERTIAN});
+//   _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, MaterialType::LAMBERTIAN});
+//   _scene.materials.push_back({glm::vec3(1.0f), MaterialType::LIGHT});
+//   _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::METAL,
+//   0.1f}); _scene.materials.push_back(
+//       {{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.5f});
+//   _scene.materials.push_back(
+//       {{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.0f / 1.5f});
+//
+//   // Create some objects in the scene
+//   Object cube("res/models/cube/cube.obj");
+//   cube.transform.setPosition(1.0f, 1.0f, -3.0f);
+//   _scene.objects.push_back(cube);
+// }
+
+void SDLGraphicsProgram::initCornellBox() {
+  /* world.add(make_shared<quad>(point3(555,0,0), vec3(0,555,0),
+    vec3(0,0,555), green)); world.add(make_shared<quad>(point3(0,0,0),
+    vec3(0,555,0), vec3(0,0,555), red)); world.add(make_shared<quad>(point3(343,
+    554, 332), vec3(-130,0,0), vec3(0,0,-105), light));
+    world.add(make_shared<quad>(point3(0,0,0), vec3(555,0,0), vec3(0,0,555),
+    white)); world.add(make_shared<quad>(point3(555,555,555), vec3(-555,0,0),
+    vec3(0,0,-555), white)); world.add(make_shared<quad>(point3(0,0,555),
+    vec3(555,0,0), vec3(0,555,0), white));
+    */
 
   // Floor
-  _scene.spheres.push_back({{0.0f, -100.5f, -1.0f}, 100.0f, 1});
+  Mesh floor;
+  floor.vertices = {{{0.0f, 0.0f, 0.0f}},
+                    {{555.0f, 0.0f, 0.0f}},
+                    {{555.0f, 0.0f, -555.0f}},
+                    {{0.0f, 0.0f, -555.0f}}};
+  floor.indices = {0, 1, 2, 0, 2, 3};
+  _scene.objects.push_back({floor});
 
-  _scene.spheres.push_back({{-1.0f, 0.0f, -1.0f}, 0.5f, 3});
+  // Ceiling
+  Mesh ceiling;
+  ceiling.vertices = {{{0.0f, 555.0f, 0.0f}},
+                      {{555.0f, 555.0f, 0.0f}},
+                      {{555.0f, 555.0f, -555.0f}},
+                      {{0.0f, 555.0f, -555.0f}}};
+  ceiling.indices = {0, 1, 2, 0, 2, 3};
+  _scene.objects.push_back({ceiling});
 
-  // Metal sphere
-  _scene.spheres.push_back({{0.0f, 0.0f, -1.0f}, 0.5f, 4});
+  // Back wall
+  Mesh backWall;
+  backWall.vertices = {{{0.0f, 0.0f, -555.0f}},
+                       {{555.0f, 0.0f, -555.0f}},
+                       {{555.0f, 555.0f, -555.0f}},
+                       {{0.0f, 555.0f, -555.0f}}};
+  backWall.indices = {0, 1, 2, 0, 2, 3};
+  _scene.objects.push_back({backWall});
 
-  // Glass spheres
-  _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.5f, 5});
-  _scene.spheres.push_back({{1.0f, 0.0f, -1.0f}, 0.4f, 6});
+  // Left wall
+  Mesh leftWall;
+  leftWall.vertices = {{{0.0f, 0.0f, 0.0f}},
+                       {{0.0f, 0.0f, -555.0f}},
+                       {{0.0f, 555.0f, -555.0f}},
+                       {{0.0f, 555.0f, 0.0f}}};
+  leftWall.indices = {0, 1, 2, 0, 2, 3};
+  _scene.objects.push_back({leftWall, Material::red()});
 
-  // 0. red, 1. green, 2. blue, 3. white light 4. metal
-  _scene.materials.push_back({{1.0f, 0.0f, 0.0f}, MaterialType::LAMBERTIAN});
-  _scene.materials.push_back({{0.0f, 1.0f, 0.0f}, MaterialType::LAMBERTIAN});
-  _scene.materials.push_back({{0.0f, 0.0f, 1.0f}, MaterialType::LAMBERTIAN});
-  _scene.materials.push_back({glm::vec3(1.0f), MaterialType::LIGHT});
-  _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::METAL, 0.1f});
-  _scene.materials.push_back({{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.5f});
-  _scene.materials.push_back(
-      {{1.0f, 1.0f, 1.0f}, MaterialType::DIELECTRIC, 1.0f / 1.5f});
+  // Right wall
+  Mesh rightWall;
+  rightWall.vertices = {{{555.0f, 0.0f, 0.0f}},
+                        {{555.0f, 0.0f, -555.0f}},
+                        {{555.0f, 555.0f, -555.0f}},
+                        {{555.0f, 555.0f, 0.0f}}};
+  rightWall.indices = {0, 1, 2, 0, 2, 3};
+  _scene.objects.push_back({rightWall, Material::green()});
 
-  // Create some objects in the scene
-  Object cube("res/models/cube/cube.obj");
-  cube.transform.setPosition(1.0f, 1.0f, -3.0f);
-  _scene.objects.push_back(cube);
+  // Light
+  Mesh light;
+  light.vertices = {
+      {{343.0f, 554.0f, -332.0f}},
+      {{343.0f, 554.0f, -423.0f}},
+      {{213.0f, 554.0f, -423.0f}},
+      {{213.0f, 554.0f, -332.0f}},
+  };
+  light.indices = {0, 1, 2, 0, 2, 3};
+  _scene.objects.push_back({light, Material::light()});
 
+  // Add some objects
+  _scene.spheres.push_back(
+      {{190.0f, 90.0f, -190.0f}, 90.0f, Material::dielectric(1.5f)});
+  _scene.spheres.push_back({{400.0f, 80.0f, -400.0f},
+                            80.0f,
+                            Material::metal(glm::vec3(1.0f), 0.0f)});
+
+  Object bunny("res/models/bunny/bunny_centered_reduced_fixed.obj");
+  bunny.transform.setPosition(300.0f, 300.0f, -300.0f);
+  bunny.transform.setScale(100.0f, 100.0f, 100.0f);
+  _scene.objects.push_back(bunny);
+
+  // Update the camera
+  _renderer->getCamera().setPosition(278.0f, 278.0f, 250.0f);
+}
+
+void SDLGraphicsProgram::initBuffers() {
   _scene.update();
 
-  // Create the storage buffers
   _gpuObjectBuffer.createStorageBuffer(_scene.bvh.getGpuObjects(),
                                        GL_STATIC_DRAW, 1);
   _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 2);

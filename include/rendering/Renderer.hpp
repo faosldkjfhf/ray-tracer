@@ -28,7 +28,7 @@ public:
 
 private:
   Camera _camera;
-  int _frameCount = 0;
+  uint _frameCount = 0;
 
   Shader _shader;
   Shader _computeShader;

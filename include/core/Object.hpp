@@ -13,10 +13,11 @@ class Object {
 public:
   Transform transform;
   Mesh mesh;
-  Material material = Material::red();
+  Material material = Material::white();
 
   Object() = default;
   Object(const Mesh &mesh) : mesh(mesh) {}
+  Object(const Mesh &mesh, const Material mat) : mesh(mesh), material(mat) {}
   Object(const std::string &filename) {
     std::vector<Texture> textures;
     ObjLoader::loadMesh(filename, mesh, textures);

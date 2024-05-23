@@ -12,6 +12,8 @@ void Scene::update() {
     auto materialIt = std::find(materials.begin(), materials.end(), material);
     if (materialIt == materials.end()) {
       materials.push_back(material);
+      std::cout << "Added material to scene, now has " << materials.size()
+                << " materials\n";
     }
   }
 
@@ -25,10 +27,20 @@ void Scene::update() {
 
   // add the spheres into the gpuObjects vector
   for (auto &sphere : spheres) {
+    // Find the sphere's material index
+    const auto &material = sphere.material;
+    auto materialIt = std::find(materials.begin(), materials.end(), material);
+    unsigned int materialIdx = 0;
+    if (materialIt == materials.end()) {
+      materials.push_back(material);
+      materialIdx = materials.size() - 1;
+    } else {
+      materialIdx = std::distance(materials.begin(), materialIt);
+    }
     gpuObjects.push_back(
         {{sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius},
          GpuObjectType::Sphere,
-         sphere.materialIdx});
+         materialIdx});
   }
 
   bvh.buildBVH(gpuObjects, getVertices());

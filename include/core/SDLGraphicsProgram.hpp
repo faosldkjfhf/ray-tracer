@@ -19,6 +19,9 @@ class SDLGraphicsProgram {
     // initializing a test scene
     void init();
 
+    void initCornellBox();
+    void initBuffers();
+
    private:
     bool _quit = false;
 
