@@ -217,7 +217,7 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
 
 bool hitBvh(Ray ray, out Hit hit) {
     float tMin = 0.001;
-    float tMax = 1000.0;
+    float tMax = 5000.0;
 
     Hit tempHit;
     bool hitAnything = false;
@@ -350,7 +350,7 @@ ONB createONB(vec3 vec, vec3 up) {
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
-    float vfov = 90.0;
+    float vfov = 40.0;
     float theta = vfov * PI / 180.0;
     float h = tan(theta / 2.0);
     float viewportHeight = 2.0 * h;
@@ -388,9 +388,6 @@ void main() {
 
     vec3 pixelColor = colorAccumulator / SAMPLES;
 
-    // vec4 oldColor = imageLoad(imgOutput, ivec2(gl_GlobalInvocationID.xy)).rgba
-    // float weight = 1.0 / (u_FrameCount + 1.0);
-    // vec4 finalColor = vec4((oldColor.xyz * (1.0 - weight) + pixelColor.xyz * weight), 1.0);
     vec4 oldColor = imageLoad(imgOutput, ivec2(gl_GlobalInvocationID.xy)).rgba * min(1.0, u_FrameCount);
     vec4 finalColor = (oldColor * u_FrameCount + vec4(pixelColor, 1.0)) / (u_FrameCount + 1.0);
 

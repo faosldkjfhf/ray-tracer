@@ -18,7 +18,7 @@ SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
 void SDLGraphicsProgram::input(float deltaTime) {
   int mouseY = _window->getHeight() / 2;
   int mouseX = _window->getWidth() / 2;
-  float moveSpeed = 50.0f * deltaTime;
+  float moveSpeed = 500.0f * deltaTime;
   Camera &camera = _renderer->getCamera();
 
   // Event handler that handles various events in SDL
@@ -145,83 +145,106 @@ void SDLGraphicsProgram::initCornellBox() {
   Material red = Material::lambertian(glm::vec3(0.65f, 0.05f, 0.05f));
   Material green = Material::lambertian(glm::vec3(0.12f, 0.45f, 0.15f));
 
+  Mesh quadMesh;
+  quadMesh.vertices = {
+      {{-0.5f, -0.5f, 0.0f}},
+      {{0.5f, -0.5f, 0.0f}},
+      {{0.5f, 0.5f, 0.0f}},
+      {{-0.5f, 0.5f, 0.0f}},
+      // {{0.0f, 0.0f, 0.0f}},
+      // {{1.0f, 0.0f, 0.0f}},
+      // {{1.0f, 1.0f, 0.0f}},
+      // {{0.0f, 1.0f, 0.0f}},
+  };
+  quadMesh.indices = {0, 1, 2, 0, 2, 3};
+
+  Object quadObj(quadMesh, white);
+
   // Floor
-  Mesh floor;
-  floor.vertices = {{{0.0f, 0.0f, 0.0f}},
-                    {{555.0f, 0.0f, 0.0f}},
-                    {{555.0f, 0.0f, -555.0f}},
-                    {{0.0f, 0.0f, -555.0f}}};
-  floor.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({floor, white});
+  quadObj.transform.setPosition(277.5f, 0.0f, -277.5f);
+  quadObj.transform.setRotation(-90.0f, 0.0f, 0.0f);
+  quadObj.transform.setScale(555.0f, 555.0f, 1.0f);
+  _scene.objects.push_back(quadObj);
 
   // Ceiling
-  Mesh ceiling;
-  ceiling.vertices = {{{0.0f, 555.0f, 0.0f}},
-                      {{555.0f, 555.0f, 0.0f}},
-                      {{555.0f, 555.0f, -555.0f}},
-                      {{0.0f, 555.0f, -555.0f}}};
-  ceiling.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({ceiling, white});
+  quadObj.transform.setPosition(277.5f, 555.0f, -277.5f);
+  quadObj.transform.setRotation(90.0f, 0.0f, 0.0f);
+  _scene.objects.push_back(quadObj);
 
   // Back wall
-  Mesh backWall;
-  backWall.vertices = {{{0.0f, 0.0f, -555.0f}},
-                       {{555.0f, 0.0f, -555.0f}},
-                       {{555.0f, 555.0f, -555.0f}},
-                       {{0.0f, 555.0f, -555.0f}}};
-  backWall.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({backWall, white});
+  quadObj.transform.setPosition(277.5f, 277.5f, -555.0f);
+  quadObj.transform.setRotation(0.0f, 0.0f, 0.0f);
+  _scene.objects.push_back(quadObj);
 
   // Left wall
-  Mesh leftWall;
-  leftWall.vertices = {{{0.0f, 0.0f, 0.0f}},
-                       {{0.0f, 0.0f, -555.0f}},
-                       {{0.0f, 555.0f, -555.0f}},
-                       {{0.0f, 555.0f, 0.0f}}};
-  leftWall.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({leftWall, red});
+  quadObj.material = red;
+  quadObj.transform.setPosition(0.0f, 277.5f, -277.5f);
+  quadObj.transform.setRotation(0.0f, 90.0f, 0.0f);
+  _scene.objects.push_back(quadObj);
 
   // Right wall
-  Mesh rightWall;
-  rightWall.vertices = {{{555.0f, 0.0f, 0.0f}},
-                        {{555.0f, 0.0f, -555.0f}},
-                        {{555.0f, 555.0f, -555.0f}},
-                        {{555.0f, 555.0f, 0.0f}}};
-  rightWall.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({rightWall, green});
+  quadObj.material = green;
+  quadObj.transform.setPosition(555.0f, 277.5f, -277.5f);
+  quadObj.transform.setRotation(0.0f, -90.0f, 0.0f);
+  _scene.objects.push_back(quadObj);
 
   // Light
-  Mesh light;
-  light.vertices = {
-      {{343.0f, 554.0f, -332.0f}},
-      {{343.0f, 554.0f, -423.0f}},
-      {{213.0f, 554.0f, -423.0f}},
-      {{213.0f, 554.0f, -332.0f}},
+  quadObj.material = Material::light();
+  quadObj.transform.setPosition(277.5f, 554.0f, -277.5f);
+  quadObj.transform.setRotation(90.0f, 0.0f, 0.0f);
+  quadObj.transform.setScale(130.0f, 105.0f, 1.0f);
+  _scene.objects.push_back(quadObj);
+
+  Mesh cubeMesh;
+  cubeMesh.vertices = {
+      // front
+      {{-0.5f, -0.5f, 0.5f}},
+      {{0.5f, -0.5f, 0.5f}},
+      {{0.5f, 0.5f, 0.5f}},
+      {{-0.5f, 0.5f, 0.5f}},
+      // back
+      {{-0.5f, -0.5f, -0.5f}},
+      {{0.5f, -0.5f, -0.5f}},
+      {{0.5f, 0.5f, -0.5f}},
+      {{-0.5f, 0.5f, -0.5f}},
   };
-  light.indices = {0, 1, 2, 0, 2, 3};
-  _scene.objects.push_back({light, Material::light()});
+  cubeMesh.indices = {
+      0, 1, 2, 0, 2, 3, // front
+      1, 5, 6, 1, 6, 2, // right
+      5, 4, 7, 5, 7, 6, // back
+      4, 0, 3, 4, 3, 7, // left
+      3, 2, 6, 3, 6, 7, // top
+      4, 5, 1, 4, 1, 0, // bottom
+  };
+
+  Object cubeObj(cubeMesh, white);
 
   // Short block
-  // Mesh shortBlock;
-  // shortBlock.vertices = {
-  //     // Front
-  //   {{130.0f, 0.0f, }}
-  // };
+  cubeObj.transform.setPosition(369.5f, 82.5f, -169.0f);
+  cubeObj.transform.setRotation(0.0f, -18.0f, 0.0f);
+  cubeObj.transform.setScale(165.0f, 165.0f, 165.0f);
+  _scene.objects.push_back(cubeObj);
+
+  // Tall block
+  cubeObj.transform.setPosition(186.5f, 165.0f, -351.25f);
+  cubeObj.transform.setRotation(0.0f, 15.0f, 0.0f);
+  cubeObj.transform.setScale(165.0f, 330.0f, 165.0f);
+  _scene.objects.push_back(cubeObj);
 
   // Add some objects
-  _scene.spheres.push_back(
-      {{190.0f, 90.0f, -190.0f}, 90.0f, Material::dielectric(1.5f)});
-  _scene.spheres.push_back({{400.0f, 80.0f, -400.0f},
-                            80.0f,
-                            Material::metal(glm::vec3(1.0f), 0.0f)});
-
-  Object bunny("res/models/bunny/bunny_centered_reduced_fixed.obj");
-  bunny.transform.setPosition(300.0f, 300.0f, -300.0f);
-  bunny.transform.setScale(100.0f, 100.0f, 100.0f);
-  _scene.objects.push_back(bunny);
+  // _scene.spheres.push_back(
+  //     {{190.0f, 90.0f, -190.0f}, 90.0f, Material::dielectric(1.5f)});
+  // _scene.spheres.push_back({{400.0f, 80.0f, -400.0f},
+  //                           80.0f,
+  //                           Material::metal(glm::vec3(1.0f), 0.0f)});
+  //
+  // Object bunny("res/models/bunny/bunny_centered_reduced_fixed.obj");
+  // bunny.transform.setPosition(300.0f, 300.0f, -300.0f);
+  // bunny.transform.setScale(100.0f, 100.0f, 100.0f);
+  // _scene.objects.push_back(bunny);
 
   // Update the camera
-  _renderer->getCamera().setPosition(278.0f, 278.0f, 250.0f);
+  _renderer->getCamera().setPosition(277.5f, 277.5f, 800.0f);
 }
 
 void SDLGraphicsProgram::initBuffers() {
