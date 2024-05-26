@@ -151,10 +151,6 @@ void SDLGraphicsProgram::initCornellBox() {
       {{0.5f, -0.5f, 0.0f}},
       {{0.5f, 0.5f, 0.0f}},
       {{-0.5f, 0.5f, 0.0f}},
-      // {{0.0f, 0.0f, 0.0f}},
-      // {{1.0f, 0.0f, 0.0f}},
-      // {{1.0f, 1.0f, 0.0f}},
-      // {{0.0f, 1.0f, 0.0f}},
   };
   quadMesh.indices = {0, 1, 2, 0, 2, 3};
 
@@ -235,10 +231,10 @@ void SDLGraphicsProgram::initCornellBox() {
   // _scene.spheres.push_back({{369.5f, 250.0f, -169.0f},
   //                           80.0f,
   //                           Material::metal(glm::vec3(1.0f), 0.0f)});
-  // _scene.spheres.push_back(
-  //     {{186.5f, 420.0f, -351.25f}, 90.0f, Material::dielectric(1.5f)});
+  _scene.spheres.push_back(
+      {{186.5f, 420.0f, -351.25f}, 90.0f, Material::metal()});
 
-  Object bunny("res/models/bunny/bunny_centered_reduced_fixed.obj");
+  Object bunny("res/models/bunny/bunny_centered_fixed.obj");
   bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
   bunny.transform.setScale(100.0f, 100.0f, 100.0f);
   _scene.objects.push_back(bunny);

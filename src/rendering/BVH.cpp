@@ -88,7 +88,6 @@ void BVH::subdivide(unsigned int nodeIndex,
   _nodes[rightIndex].numObjects = node.numObjects - leftCount;
 
   node.leftChild = leftIndex;
-  node.firstObject = -1;
   node.numObjects = 0;
 
   updateNodeBounds(leftIndex, vertices);
@@ -103,11 +102,8 @@ AABB BVH::getAABB(const GpuObject &object,
     glm::vec3 v0 = vertices[object.data.x].position;
     glm::vec3 v1 = vertices[object.data.y].position;
     glm::vec3 v2 = vertices[object.data.z].position;
-    glm::vec3 min = glm::vec3(0.0f);
-    glm::vec3 max = glm::vec3(0.0f);
-
-    min = glm::min(v0, glm::min(v1, v2));
-    max = glm::max(v0, glm::max(v1, v2));
+    glm::vec3 min = glm::min(v0, glm::min(v1, v2));
+    glm::vec3 max = glm::max(v0, glm::max(v1, v2));
     return {min, max};
   } else /*  if (object.type == GpuObjectType::Sphere) */ {
     glm::vec3 radius = glm::vec3(object.data.w);

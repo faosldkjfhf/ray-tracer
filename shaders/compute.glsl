@@ -112,7 +112,7 @@ void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
 }
 
-vec2 intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax, out float t) {
+vec2 intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax) {
     vec3 tMin = (boxMin - ray.origin) / ray.direction;
     vec3 tMax = (boxMax - ray.origin) / ray.direction;
     vec3 t1 = min(tMin, tMax);
@@ -185,27 +185,6 @@ bool triIntersect(Ray ray, Object face, out float t, out vec3 n) {
     return true;
 }
 
-vec3 triIntersect2(Ray ray, Object face, out vec3 n) {
-    // Moller-Trumbore algorithm from Vulkan code
-    vec3 v0 = vertices[int(face.data.x)];
-    vec3 v1 = vertices[int(face.data.y)];
-    vec3 v2 = vertices[int(face.data.z)];
-    vec3 a = v0 - v1;
-    vec3 b = v2 - v0;
-
-    vec3 p = v0 - ray.origin;
-    n = cross(b, a);
-
-    vec3 q = cross(p, ray.direction);
-    float idet = 1.0 / dot(ray.direction, n);
-
-    float t = dot(n, p) * idet;
-    float u = dot(q, b) * idet;
-    float v = dot(q, a) * idet;
-
-    return vec3(t, u, v);
-}
-
 bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     float t = 0.0;
     vec3 n = vec3(0.0);
@@ -218,99 +197,25 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
         return true;
     }
     return false;
-
-    // vec3 n = vec3(0.0);
-    // vec3 tuv = triIntersect2(ray, face, n);
-    // if (tuv.y >= 0.0 && tuv.y <= 1.0 && tuv.z >= 0.0 && tuv.y + tuv.z <= 1.0) {
-    //     hit.t = tuv.x;
-    //     hit.position = ray.origin + ray.direction * tuv.x;
-    //     hit.normal = normalize(n);
-    //     hit.materialIdx = face.materialIdx;
-    //     setHitFaceNormal(hit, ray, hit.normal);
-    //     return tuv.x >= tMin && tuv.x <= tMax;
-    // }
-    // return false;
-
-    // Check if ray intersects the plane of the triangle
-    // vec3 v0 = vertices[int(face.data.x)];
-    // vec3 v1 = vertices[int(face.data.y)];
-    // vec3 v2 = vertices[int(face.data.z)];
-    // vec3 v0v1 = v1 - v0;
-    // vec3 v1v2 = v2 - v1;
-    // vec3 v2v0 = v0 - v2;
-    // vec3 normal = cross(v0v1, v1v2);
-    //
-    // float nDotV0MinusO = dot(normal, v0 - ray.origin);
-    // float nDotD = dot(normal, ray.direction);
-    // float t = nDotV0MinusO / nDotD;
-    // vec3 intersectPoint = ray.origin + ray.direction * t;
-    //
-    // if (t < tMin || t > tMax) {
-    //     return false;
-    // }
-    //
-    // // Check if the intersection point is inside the triangle
-    // float dotCross0 = dot(cross(v0v1, intersectPoint - v0), normal);
-    // float dotCross1 = dot(cross(v1v2, intersectPoint - v1), normal);
-    // float dotCross2 = dot(cross(v2v0, intersectPoint - v2), normal);
-    //
-    // if ((dotCross0 >= 0.0 && dotCross1 >= 0.0 && dotCross2 >= 0.0) ||
-    //         (dotCross0 <= 0.0 && dotCross1 <= 0.0 && dotCross2 <= 0.0)) {
-    //     hit.t = t;
-    //     hit.position = intersectPoint;
-    //     hit.normal = normalize(normal);
-    //     hit.materialIdx = face.materialIdx;
-    //     setHitFaceNormal(hit, ray, hit.normal);
-    //     return true;
-    // }
-    //
-    // return false;
 }
 
-// bool hitScene(Ray ray, out Hit hit) {
-//     float tMin = 0.001;
-//     float tMax = 1000.0;
-//
-//     Hit tempHit;
-//     bool hitAnything = false;
-//     float closest = tMax;
-//
-//     for (int i = 0; i < spheres.length(); i++) {
-//         if (hitSphere(ray, spheres[i], tMin, closest, tempHit)) {
-//             hitAnything = true;
-//             closest = tempHit.t;
-//             hit = tempHit;
-//         }
-//     }
-//
-//     for (int i = 0; i < faces.length(); i++) {
-//         if (hitFace(ray, faces[i], tMin, closest, tempHit)) {
-//             hitAnything = true;
-//             closest = tempHit.t;
-//             hit = tempHit;
-//         }
-//     }
-//
-//     return hitAnything;
-// }
-
+#define MAX_STACK_SIZE 64
 bool hitBvh(Ray ray, out Hit hit) {
     float tMin = 0.001;
     float tMax = 5000.0;
 
-    Hit tempHit;
     bool hitAnything = false;
     float closest = tMax;
 
-    int stack[64];
+    int stack[MAX_STACK_SIZE];
     int stackSize = 0;
     stack[stackSize++] = 0;
 
-    while (stackSize > 0 && stackSize < 64) {
+    while (stackSize > 0 && stackSize < MAX_STACK_SIZE) {
         int nodeIdx = stack[--stackSize];
         BVHNode node = bvh[nodeIdx];
 
-        vec2 tIntersect = intersectAABB(ray, node.aabbMin, node.aabbMax, tempHit.t);
+        vec2 tIntersect = intersectAABB(ray, node.aabbMin, node.aabbMax);
         if (tIntersect.y < tIntersect.x) {
             continue;
         }
@@ -319,6 +224,7 @@ bool hitBvh(Ray ray, out Hit hit) {
             for (int i = 0; i < node.numObjects; i++) {
                 int objectIdx = node.firstObject + i;
                 Object obj = objects[objectIdx];
+                Hit tempHit;
                 if (obj.type == TYPE_FACE) {
                     if (hitFace(ray, obj, tMin, closest, tempHit)) {
                         hitAnything = true;
@@ -372,8 +278,9 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
             scattered.direction = hit.normal;
         }
     } else if (type == METAL) {
-        scattered.direction = reflect(scattered.direction, hit.normal);
-        scattered.direction += materials[hit.materialIdx].typeData * randomOnUnitSphere();
+        scattered.direction = normalize(reflect(scattered.direction, hit.normal)) +
+                materials[hit.materialIdx].typeData * randomOnUnitSphere();
+        return dot(scattered.direction, hit.normal) > 0.0;
     } else if (type == DIELECTRIC) {
         float refractionIndex = materials[hit.materialIdx].typeData;
         float ri = hit.frontFace ? 1.0 / refractionIndex : refractionIndex;
@@ -390,6 +297,8 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
         albedo *= materials[hit.materialIdx].typeData;
         return false;
     }
+
+    scattered.direction = normalize(scattered.direction);
 
     return true;
 }
@@ -458,6 +367,7 @@ void main() {
         Ray ray;
         ray.origin = origin;
         ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
+        ray.direction = normalize(ray.direction);
         // Get the color of the pixel at where the ray intersects the scene
         colorAccumulator += rayColor(ray);
     }
