@@ -284,10 +284,14 @@ float reflectance(float cosine, float refIdx) {
 
 bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     albedo = materials[hit.materialIdx].albedo;
+    scattered.origin = hit.position;
 
     uint type = materials[hit.materialIdx].type;
     if (type == LAMBERTIAN) {
-        scattered.direction = normalize(hit.normal + randomOnUnitSphere());
+        scattered.direction = hit.normal + randomOnUnitSphere();
+        if (length(scattered.direction) < 0.0001) {
+            scattered.direction = hit.normal;
+        }
     } else if (type == METAL) {
         scattered.direction = reflect(scattered.direction, hit.normal);
         scattered.direction += materials[hit.materialIdx].typeData * randomOnUnitSphere();
@@ -308,9 +312,6 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
         return false;
     }
 
-    scattered.origin = hit.position;
-    scattered.direction = normalize(scattered.direction);
-
     return true;
 }
 
@@ -327,9 +328,6 @@ vec3 rayColor(Ray ray) {
                 break;
             }
         } else {
-            // vec3 unitDirection = normalize(ray.direction);
-            // float t = 0.5 * (unitDirection.y + 1.0);
-            // finalColor *= (1.0 - t) * vec3(1.0) + t * vec3(0.5, 0.7, 1.0);
             finalColor *= 0.0;
             break;
         }
@@ -346,7 +344,7 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 5
+#define SAMPLES 10
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
@@ -381,7 +379,6 @@ void main() {
         Ray ray;
         ray.origin = origin;
         ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
-        ray.direction = normalize(ray.direction);
         // Get the color of the pixel at where the ray intersects the scene
         colorAccumulator += rayColor(ray);
     }

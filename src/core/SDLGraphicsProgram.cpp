@@ -232,12 +232,12 @@ void SDLGraphicsProgram::initCornellBox() {
   _scene.objects.push_back(cubeObj);
 
   // Add some objects
-  // _scene.spheres.push_back(
-  //     {{190.0f, 90.0f, -190.0f}, 90.0f, Material::dielectric(1.5f)});
-  // _scene.spheres.push_back({{400.0f, 80.0f, -400.0f},
-  //                           80.0f,
-  //                           Material::metal(glm::vec3(1.0f), 0.0f)});
-  //
+  _scene.spheres.push_back({{369.5f, 250.0f, -169.0f},
+                            80.0f,
+                            Material::metal(glm::vec3(1.0f), 0.0f)});
+  _scene.spheres.push_back(
+      {{186.5f, 420.0f, -351.25f}, 90.0f, Material::dielectric(1.5f)});
+
   // Object bunny("res/models/bunny/bunny_centered_reduced_fixed.obj");
   // bunny.transform.setPosition(300.0f, 300.0f, -300.0f);
   // bunny.transform.setScale(100.0f, 100.0f, 100.0f);
