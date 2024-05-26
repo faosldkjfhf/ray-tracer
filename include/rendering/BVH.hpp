@@ -25,15 +25,14 @@ public:
                         const std::vector<Vertex> &vertices);
   void subdivide(unsigned int nodeIndex, const std::vector<Vertex> &vertices);
 
-  AABB getAABB(GpuObject &object, const std::vector<Vertex> &vertices) const;
+  AABB getAABB(const GpuObject &object,
+               const std::vector<Vertex> &vertices) const;
 
   const std::vector<BVHNode> &getBVHNodes() const { return _nodes; }
   const std::vector<GpuObject> &getGpuObjects() const { return _gpuObjects; }
 
 private:
   unsigned int _nodesUsed = 1;
-  unsigned int _size = 0;
   std::vector<BVHNode> _nodes;
-
   std::vector<GpuObject> _gpuObjects;
 };
