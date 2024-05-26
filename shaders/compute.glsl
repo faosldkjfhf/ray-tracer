@@ -151,41 +151,120 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     return true;
 }
 
-bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
-    // Check if ray intersects the plane of the triangle
+bool triIntersect(Ray ray, Object face, out float t, out vec3 n) {
+    // Moller-Trumbore algorithm
     vec3 v0 = vertices[int(face.data.x)];
     vec3 v1 = vertices[int(face.data.y)];
     vec3 v2 = vertices[int(face.data.z)];
-    vec3 v0v1 = v1 - v0;
-    vec3 v1v2 = v2 - v1;
-    vec3 v2v0 = v0 - v2;
-    vec3 normal = cross(v0v1, v1v2);
+    vec3 a = v1 - v0;
+    vec3 b = v2 - v0;
 
-    float nDotV0MinusO = dot(normal, v0 - ray.origin);
-    float nDotD = dot(normal, ray.direction);
-    float t = nDotV0MinusO / nDotD;
-    vec3 intersectPoint = ray.origin + ray.direction * t;
-
-    if (t < tMin || t > tMax) {
+    vec3 pvec = cross(ray.direction, b);
+    float det = dot(a, pvec);
+    if (abs(det) < 0.0001) {
         return false;
     }
 
-    // Check if the intersection point is inside the triangle
-    float dotCross0 = dot(cross(v0v1, intersectPoint - v0), normal);
-    float dotCross1 = dot(cross(v1v2, intersectPoint - v1), normal);
-    float dotCross2 = dot(cross(v2v0, intersectPoint - v2), normal);
+    n = cross(b, a);
 
-    if ((dotCross0 >= 0.0 && dotCross1 >= 0.0 && dotCross2 >= 0.0) ||
-            (dotCross0 <= 0.0 && dotCross1 <= 0.0 && dotCross2 <= 0.0)) {
+    float idet = 1.0 / det;
+    vec3 tvec = ray.origin - v0;
+    float u = dot(tvec, pvec) * idet;
+    if (u < 0.0 || u > 1.0) {
+        return false;
+    }
+
+    vec3 qvec = cross(tvec, a);
+    float v = dot(ray.direction, qvec) * idet;
+    if (v < 0.0 || u + v > 1.0) {
+        return false;
+    }
+
+    t = dot(b, qvec) * idet;
+
+    return true;
+}
+
+vec3 triIntersect2(Ray ray, Object face, out vec3 n) {
+    // Moller-Trumbore algorithm from Vulkan code
+    vec3 v0 = vertices[int(face.data.x)];
+    vec3 v1 = vertices[int(face.data.y)];
+    vec3 v2 = vertices[int(face.data.z)];
+    vec3 a = v0 - v1;
+    vec3 b = v2 - v0;
+
+    vec3 p = v0 - ray.origin;
+    n = cross(b, a);
+
+    vec3 q = cross(p, ray.direction);
+    float idet = 1.0 / dot(ray.direction, n);
+
+    float t = dot(n, p) * idet;
+    float u = dot(q, b) * idet;
+    float v = dot(q, a) * idet;
+
+    return vec3(t, u, v);
+}
+
+bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
+    float t = 0.0;
+    vec3 n = vec3(0.0);
+    if (triIntersect(ray, face, t, n) && t >= tMin && t <= tMax) {
         hit.t = t;
-        hit.position = intersectPoint;
-        hit.normal = normalize(normal);
+        hit.position = ray.origin + ray.direction * t;
+        hit.normal = normalize(n);
         hit.materialIdx = face.materialIdx;
         setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
-
     return false;
+
+    // vec3 n = vec3(0.0);
+    // vec3 tuv = triIntersect2(ray, face, n);
+    // if (tuv.y >= 0.0 && tuv.y <= 1.0 && tuv.z >= 0.0 && tuv.y + tuv.z <= 1.0) {
+    //     hit.t = tuv.x;
+    //     hit.position = ray.origin + ray.direction * tuv.x;
+    //     hit.normal = normalize(n);
+    //     hit.materialIdx = face.materialIdx;
+    //     setHitFaceNormal(hit, ray, hit.normal);
+    //     return tuv.x >= tMin && tuv.x <= tMax;
+    // }
+    // return false;
+
+    // Check if ray intersects the plane of the triangle
+    // vec3 v0 = vertices[int(face.data.x)];
+    // vec3 v1 = vertices[int(face.data.y)];
+    // vec3 v2 = vertices[int(face.data.z)];
+    // vec3 v0v1 = v1 - v0;
+    // vec3 v1v2 = v2 - v1;
+    // vec3 v2v0 = v0 - v2;
+    // vec3 normal = cross(v0v1, v1v2);
+    //
+    // float nDotV0MinusO = dot(normal, v0 - ray.origin);
+    // float nDotD = dot(normal, ray.direction);
+    // float t = nDotV0MinusO / nDotD;
+    // vec3 intersectPoint = ray.origin + ray.direction * t;
+    //
+    // if (t < tMin || t > tMax) {
+    //     return false;
+    // }
+    //
+    // // Check if the intersection point is inside the triangle
+    // float dotCross0 = dot(cross(v0v1, intersectPoint - v0), normal);
+    // float dotCross1 = dot(cross(v1v2, intersectPoint - v1), normal);
+    // float dotCross2 = dot(cross(v2v0, intersectPoint - v2), normal);
+    //
+    // if ((dotCross0 >= 0.0 && dotCross1 >= 0.0 && dotCross2 >= 0.0) ||
+    //         (dotCross0 <= 0.0 && dotCross1 <= 0.0 && dotCross2 <= 0.0)) {
+    //     hit.t = t;
+    //     hit.position = intersectPoint;
+    //     hit.normal = normalize(normal);
+    //     hit.materialIdx = face.materialIdx;
+    //     setHitFaceNormal(hit, ray, hit.normal);
+    //     return true;
+    // }
+    //
+    // return false;
 }
 
 // bool hitScene(Ray ray, out Hit hit) {
@@ -344,7 +423,7 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 10
+#define SAMPLES 5
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
