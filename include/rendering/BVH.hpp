@@ -7,6 +7,8 @@
 #include "core/Vertex.hpp"
 #include "rendering/GpuObject.hpp"
 
+#include <iostream>
+
 struct BVHNode {
   alignas(16) glm::vec3 aabbMin{glm::vec3(INFINITY)};
   alignas(16) glm::vec3 aabbMax{glm::vec3(-INFINITY)};
@@ -27,6 +29,8 @@ public:
 
   AABB getAABB(const GpuObject &object,
                const std::vector<Vertex> &vertices) const;
+
+  friend std::ostream &operator<<(std::ostream &os, const BVH &bvh);
 
   const std::vector<BVHNode> &getBVHNodes() const { return _nodes; }
   const std::vector<GpuObject> &getGpuObjects() const { return _gpuObjects; }

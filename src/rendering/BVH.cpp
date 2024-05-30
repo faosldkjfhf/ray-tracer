@@ -18,30 +18,6 @@ void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
   updateNodeBounds(0, vertices);
   subdivide(0, vertices);
   _nodes.resize(_nodesUsed);
-
-  // for (int i = 0; i < _nodes.size(); i++) {
-  //   std::cout << "Node " << i << ":\n";
-  //   std::cout << "  aabbMin: " << _nodes[i].aabbMin.x << " "
-  //             << _nodes[i].aabbMin.y << " " << _nodes[i].aabbMin.z << "\n";
-  //   std::cout << "  aabbMax: " << _nodes[i].aabbMax.x << " "
-  //             << _nodes[i].aabbMax.y << " " << _nodes[i].aabbMax.z << "\n";
-  //   std::cout << "  leftChild: " << _nodes[i].leftChild << "\n";
-  //   std::cout << "  firstObject: " << _nodes[i].firstObject << "\n";
-  //   std::cout << "  numObjects: " << _nodes[i].numObjects << "\n";
-  //   for (int j = _nodes[i].firstObject;
-  //        j < _nodes[i].firstObject + _nodes[i].numObjects; j++) {
-  //     std::cout << "    Object " << j << ":\n";
-  //     if (_gpuObjects[j].type == GpuObjectType::Face) {
-  //       std::cout << "      Face: " << _gpuObjects[j].data.x << " "
-  //                 << _gpuObjects[j].data.y << " " << _gpuObjects[j].data.z
-  //                 << "\n";
-  //     } else {
-  //       std::cout << "      Sphere: " << _gpuObjects[j].data.x << " "
-  //                 << _gpuObjects[j].data.y << " " << _gpuObjects[j].data.z
-  //                 << " " << _gpuObjects[j].data.w << "\n";
-  //     }
-  //   }
-  // }
 }
 
 void BVH::updateNodeBounds(unsigned int nodeIndex,
@@ -110,4 +86,31 @@ AABB BVH::getAABB(const GpuObject &object,
     glm::vec3 center = glm::vec3(object.data.x, object.data.y, object.data.z);
     return {center - radius, center + radius};
   }
+}
+
+std::ostream &operator<<(std::ostream &os, const BVH &bvh) {
+  for (int i = 0; i < bvh._nodes.size(); i++) {
+    os << "Node " << i << ":\n";
+    os << "  aabbMin: " << bvh._nodes[i].aabbMin.x << " "
+       << bvh._nodes[i].aabbMin.y << " " << bvh._nodes[i].aabbMin.z << "\n";
+    os << "  aabbMax: " << bvh._nodes[i].aabbMax.x << " "
+       << bvh._nodes[i].aabbMax.y << " " << bvh._nodes[i].aabbMax.z << "\n";
+    os << "  leftChild: " << bvh._nodes[i].leftChild << "\n";
+    os << "  firstObject: " << bvh._nodes[i].firstObject << "\n";
+    os << "  numObjects: " << bvh._nodes[i].numObjects << "\n";
+    for (int j = bvh._nodes[i].firstObject;
+         j < bvh._nodes[i].firstObject + bvh._nodes[i].numObjects; j++) {
+      os << "    Object " << j << ":\n";
+      if (bvh._gpuObjects[j].type == GpuObjectType::Face) {
+        os << "      Face: " << bvh._gpuObjects[j].data.x << " "
+           << bvh._gpuObjects[j].data.y << " " << bvh._gpuObjects[j].data.z
+           << "\n";
+      } else {
+        os << "      Sphere: " << bvh._gpuObjects[j].data.x << " "
+           << bvh._gpuObjects[j].data.y << " " << bvh._gpuObjects[j].data.z
+           << " " << bvh._gpuObjects[j].data.w << "\n";
+      }
+    }
+  }
+  return os;
 }
