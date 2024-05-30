@@ -27,19 +27,6 @@ GLuint compileShader(GLuint type, const std::string &source) {
   // Compile our shaders
   GLuint shaderObject = glCreateShader(type);
 
-  // Based on the type passed in, we create a shader object specifically for
-  // that type.
-
-  /*
-  if (type == GL_VERTEX_SHADER) {
-    shaderObject = glCreateShader(GL_VERTEX_SHADER);
-  } else if (type == GL_FRAGMENT_SHADER) {
-    shaderObject = glCreateShader(GL_FRAGMENT_SHADER);
-  } else if (type == GL_COMPUTE_SHADER) {
-    shaderObject = glCreateShader(GL_COMPUTE_SHADER);
-  }
-  */
-
   const char *src = source.c_str();
   // The source of our shader
   glShaderSource(shaderObject, 1, &src, nullptr);
