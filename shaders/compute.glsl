@@ -19,15 +19,40 @@ struct Ray {
 struct Hit {
     float t;
     vec3 position;
+    vec2 uv;
     vec3 normal;
     bool frontFace;
     uint materialIdx;
+    int textureIdx; // -1 if no texture
 };
 
 struct ONB {
     vec3 u;
     vec3 v;
     vec3 w;
+};
+
+struct Vertex {
+    vec3 position;
+    vec2 texCoord;
+};
+
+#define TYPE_FACE 0
+#define TYPE_SPHERE 1
+
+struct Object {
+    vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
+    uint type; // 0: Triangle/Face, 1: Sphere
+    uint materialIdx;
+    uint textureIdx; // strictly speaking, this is just the index of the parent object
+};
+
+struct BVHNode {
+    vec3 aabbMin;
+    vec3 aabbMax;
+    int leftChild;
+    int firstObject;
+    int numObjects;
 };
 
 #define LAMBERTIAN 0
@@ -41,38 +66,32 @@ struct Material {
     float typeData; // Metal: fuzziness; Glass: refraction index; Light: emission strength
 };
 
-#define TYPE_FACE 0
-#define TYPE_SPHERE 1
-
-struct Object {
-    vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
-    uint type; // 0: Triangle/Face, 1: Sphere
-    uint materialIdx;
+struct TextureIdx {
+    int diffuseTextureIdx; // -1 if no texture
+    int normalTextureIdx; // -1 if no texture
 };
 
-struct BVHNode {
-    vec3 aabbMin;
-    vec3 aabbMax;
-    int leftChild;
-    int firstObject;
-    int numObjects;
+layout(std430, binding = 1) readonly buffer VertexBuffer {
+    Vertex vertices[];
 };
 
-layout(std430, binding = 1) buffer ObjectBuffer {
+layout(std430, binding = 2) buffer ObjectBuffer {
     Object objects[];
 };
 
-layout(std430, binding = 2) buffer VertexBuffer {
-    vec3 vertices[];
+layout(std430, binding = 3) buffer BVHBuffer {
+    BVHNode bvh[];
 };
 
-layout(std430, binding = 3) buffer MaterialBuffer {
+layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
 };
 
-layout(std430, binding = 4) buffer BVHBuffer {
-    BVHNode bvh[];
+layout(std430, binding = 5) buffer TextureBuffer {
+    TextureIdx texturesIndices[];
 };
+
+layout(binding = 6) uniform sampler2D[10] u_Textures;
 
 float stepRngFloat(inout uint state) {
     state = state * 747796405 + 2891336453;
@@ -145,17 +164,18 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
 
     hit.t = t;
     hit.position = ray.origin + ray.direction * t;
-    hit.materialIdx = sphere.materialIdx;
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
+    hit.materialIdx = sphere.materialIdx;
+    hit.textureIdx = -1;
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
 
 bool triIntersect(Ray ray, Object face, out float t, out vec3 n) {
     // Moller-Trumbore algorithm
-    vec3 v0 = vertices[int(face.data.x)];
-    vec3 v1 = vertices[int(face.data.y)];
-    vec3 v2 = vertices[int(face.data.z)];
+    vec3 v0 = vertices[int(face.data.x)].position;
+    vec3 v1 = vertices[int(face.data.y)].position;
+    vec3 v2 = vertices[int(face.data.z)].position;
     vec3 a = v1 - v0;
     vec3 b = v2 - v0;
 
@@ -191,8 +211,10 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     if (triIntersect(ray, face, t, n) && t >= tMin && t <= tMax) {
         hit.t = t;
         hit.position = ray.origin + ray.direction * t;
+        hit.uv = vec2(0.5);
         hit.normal = normalize(n);
         hit.materialIdx = face.materialIdx;
+        hit.textureIdx = int(face.textureIdx);
         setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
@@ -303,6 +325,15 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     return true;
 }
 
+vec3 textureColor(int textureIdx, vec2 uv) {
+    TextureIdx texIdx = texturesIndices[textureIdx];
+    if (texIdx.diffuseTextureIdx == -1) {
+        return vec3(1.0);
+    }
+    vec3 diffuseColor = texture(u_Textures[texIdx.diffuseTextureIdx], uv).rgb;
+    return diffuseColor;
+}
+
 vec3 rayColor(Ray ray) {
     Hit hit;
 
@@ -311,6 +342,9 @@ vec3 rayColor(Ray ray) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
+            if (hit.textureIdx != -1) {
+                // albedo *= textureColor(hit.textureIdx, hit.uv);
+            }
             finalColor *= albedo;
             if (!scatters) {
                 break;
@@ -332,7 +366,7 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 5
+#define SAMPLES 1
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 

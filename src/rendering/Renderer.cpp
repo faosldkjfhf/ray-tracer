@@ -19,18 +19,19 @@ Renderer::Renderer(const Window &window)
   std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
   _screenQuad = {vertices, indices};
-
   _screenQuadLayout.createBufferLayout(_screenQuad.vertices,
                                        _screenQuad.indices);
 
   _shader.use();
   _screenQuadLayout.bind();
-  _texture.bind(_shader, 0);
+  _texture.bind(0);
 }
 
 void Renderer::render(const Scene &scene) const {
-  _computeShader.use();
+  _texture.bind(0);
+  scene.bindTextures(_shader);
 
+  _computeShader.use();
   // Pass in scene data as uniforms
   _computeShader.setVec3("u_CameraPosition", _camera.getPosition());
   _computeShader.setVec3("u_CameraDirection", _camera.getViewDirection());

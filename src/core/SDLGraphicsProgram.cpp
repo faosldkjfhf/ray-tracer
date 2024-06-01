@@ -95,15 +95,13 @@ void SDLGraphicsProgram::render() const {
 }
 
 void SDLGraphicsProgram::run() {
-  /*
-  SDL_WarpMouseInWindow(_window->getWindow(), _window->getWidth() / 2,
-                        _window->getHeight() / 2);*/
   getOpenGLVersionInfo();
 
-  _gpuObjectBuffer.bind();
   _vertexBuffer.bind();
-  _materialBuffer.bind();
+  _gpuObjectBuffer.bind();
   _bvhBuffer.bind();
+  _materialBuffer.bind();
+  _textureBuffer.bind();
 
   _lastTime = SDL_GetTicks();
   int frameCount = 0;
@@ -234,10 +232,16 @@ void SDLGraphicsProgram::initCornellBox() {
   _scene.spheres.push_back(
       {{186.5f, 420.0f, -351.25f}, 90.0f, Material::metal()});
 
-  Object bunny("res/models/bunny/bunny_centered_fixed.obj");
-  bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
-  bunny.transform.setScale(100.0f, 100.0f, 100.0f);
-  _scene.objects.push_back(bunny);
+  // Object bunny("res/models/bunny/bunny_centered_fixed.obj");
+  // bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
+  // bunny.transform.setScale(100.0f, 100.0f, 100.0f);
+  // _scene.objects.push_back(bunny);
+
+  // Textured cube
+  Object texturedCube("res/models/textured_cube/cube.obj");
+  texturedCube.transform.setPosition(369.5f, 215.0f, -169.0f);
+  texturedCube.transform.setScale(50.0f, 50.0f, 50.0f);
+  _scene.objects.push_back(texturedCube);
 
   // Update the camera
   _renderer->getCamera().setPosition(277.5f, 277.5f, 800.0f);
@@ -246,9 +250,10 @@ void SDLGraphicsProgram::initCornellBox() {
 void SDLGraphicsProgram::initBuffers() {
   _scene.update();
 
+  _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 1);
   _gpuObjectBuffer.createStorageBuffer(_scene.bvh.getGpuObjects(),
-                                       GL_STATIC_DRAW, 1);
-  _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 2);
-  _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 3);
-  _bvhBuffer.createStorageBuffer(_scene.bvh.getBVHNodes(), GL_STATIC_DRAW, 4);
+                                       GL_STATIC_DRAW, 2);
+  _bvhBuffer.createStorageBuffer(_scene.bvh.getBVHNodes(), GL_STATIC_DRAW, 3);
+  _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 4);
+  _textureBuffer.createStorageBuffer(_scene.gpuTextures, GL_STATIC_DRAW, 5);
 }

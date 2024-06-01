@@ -2,7 +2,7 @@
 
 #include <glm/vec3.hpp>
 
-#include "Material.hpp"
+#include "GpuModel/Material.hpp"
 
 struct Sphere {
   glm::vec3 center{0.0f, 0.0f, 0.0f};

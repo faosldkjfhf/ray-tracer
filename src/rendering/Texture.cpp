@@ -6,7 +6,7 @@
 #include <glad/glad.h>
 
 Texture::Texture(const std::string &path, TextureType type)
-    : _path(path), _type(type) {}
+    : _path(path), type(type) {}
 
 Texture::Texture(int width, int height) {
   glGenTextures(1, &_id);
@@ -57,9 +57,10 @@ void Texture::loadFromFile() {
   glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
                GL_UNSIGNED_BYTE, data);
   glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::bind(const Shader &shader, unsigned int slot) const {
+void Texture::bind(unsigned int slot) const {
   glActiveTexture(GL_TEXTURE0 + slot);
   // std::string name = "u_Material.";
   // if (_type == TextureType::DIFFUSE) {
@@ -69,8 +70,8 @@ void Texture::bind(const Shader &shader, unsigned int slot) const {
   // } else if (_type == TextureType::NORMAL) {
   //   name += "normal";
   // }
-  std::string name = "u_Texture";
-  shader.setInt(name, slot);
+  // std::string name = "u_Texture";
+  // shader.setInt(name, slot);
   glBindTexture(GL_TEXTURE_2D, _id);
 }
 

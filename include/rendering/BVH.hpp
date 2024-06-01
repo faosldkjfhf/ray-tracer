@@ -4,18 +4,12 @@
 #include <vector>
 
 #include "core/AABB.hpp"
-#include "core/Vertex.hpp"
-#include "rendering/GpuObject.hpp"
+
+#include "GpuModel/GpuObject.hpp"
+#include "GpuModel/Vertex.hpp"
+#include "GpuModel/BVHNode.hpp"
 
 #include <iostream>
-
-struct BVHNode {
-  alignas(16) glm::vec3 aabbMin{glm::vec3(INFINITY)};
-  alignas(16) glm::vec3 aabbMax{glm::vec3(-INFINITY)};
-  alignas(4) int leftChild{-1};
-  alignas(4) int firstObject{-1};
-  alignas(4) int numObjects{0};
-};
 
 class BVH {
 public:

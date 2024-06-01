@@ -31,10 +31,11 @@ private:
 
   Scene _scene;
 
-  StorageBuffer _gpuObjectBuffer;
   StorageBuffer _vertexBuffer;
-  StorageBuffer _materialBuffer;
+  StorageBuffer _gpuObjectBuffer;
   StorageBuffer _bvhBuffer;
+  StorageBuffer _materialBuffer;
+  StorageBuffer _textureBuffer;
 
   void input(float deltaTime);
   void update(float deltaTime);
