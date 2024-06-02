@@ -239,6 +239,7 @@ bool hitBvh(Ray ray, out Hit hit) {
             continue;
         }
 
+        // Check if the node is a leaf
         if (node.objectIndex != -1) {
             Object obj = objects[node.objectIndex];
             Hit tempHit;
@@ -255,12 +256,25 @@ bool hitBvh(Ray ray, out Hit hit) {
                     hit = tempHit;
                 }
             }
+
+            continue;
         }
 
-        if (node.leftChild != -1) {
-            stack[stackSize++] = node.leftChild;
-            stack[stackSize++] = node.leftChild + 1;
-        }
+        stack[stackSize++] = node.leftChild;
+        stack[stackSize++] = node.leftChild + 1;
+
+        // Push the closer node last
+        // bool hitLeft = false;
+        // vec2 leftIntersect = intersectAABB(ray, bvh[node.leftChild].aabbMin, bvh[node.leftChild].aabbMax);
+        // if (leftIntersect.x < leftIntersect.y) {
+        //     hitLeft = true;
+        // }
+        //
+        // bool hitRight = false;
+        // vec2 rightIntersect = intersectAABB(ray, bvh[node.leftChild + 1].aabbMin, bvh[node.leftChild + 1].aabbMax);
+        // if (rightIntersect.x < rightIntersect.y) {
+        //     hitRight = true;
+        // }
     }
 
     return hitAnything;
@@ -288,6 +302,11 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     scattered.origin = hit.position;
 
     uint type = materials[hit.materialIdx].type;
+    if (type == LIGHT) {
+        albedo *= materials[hit.materialIdx].typeData;
+        return false;
+    }
+
     if (type == LAMBERTIAN) {
         scattered.direction = hit.normal + randomOnUnitSphere();
         if (length(scattered.direction) < 0.0001) {
@@ -309,9 +328,6 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
         } else {
             scattered.direction = refract(scattered.direction, hit.normal, ri);
         }
-    } else if (type == LIGHT) {
-        albedo *= materials[hit.materialIdx].typeData;
-        return false;
     }
 
     scattered.direction = normalize(scattered.direction);
