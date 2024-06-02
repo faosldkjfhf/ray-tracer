@@ -64,6 +64,7 @@ void BVH::subdivide(unsigned int nodeIndex,
   _nodes[rightIndex].numObjects = node.numObjects - leftCount;
 
   node.leftChild = leftIndex;
+  node.firstObject = -1;
   node.numObjects = 0;
 
   updateNodeBounds(leftIndex, vertices);

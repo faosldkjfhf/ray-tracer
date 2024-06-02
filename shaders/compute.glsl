@@ -49,10 +49,9 @@ struct Object {
 
 struct BVHNode {
     vec3 aabbMin;
-    vec3 aabbMax;
     int leftChild;
-    int firstObject;
-    int numObjects;
+    vec3 aabbMax;
+    int objectIndex;
 };
 
 #define LAMBERTIAN 0
@@ -240,23 +239,20 @@ bool hitBvh(Ray ray, out Hit hit) {
             continue;
         }
 
-        if (node.numObjects > 0) {
-            for (int i = 0; i < node.numObjects; i++) {
-                int objectIdx = node.firstObject + i;
-                Object obj = objects[objectIdx];
-                Hit tempHit;
-                if (obj.type == TYPE_FACE) {
-                    if (hitFace(ray, obj, tMin, closest, tempHit)) {
-                        hitAnything = true;
-                        closest = tempHit.t;
-                        hit = tempHit;
-                    }
-                } else if (obj.type == TYPE_SPHERE) {
-                    if (hitSphere(ray, obj, tMin, closest, tempHit)) {
-                        hitAnything = true;
-                        closest = tempHit.t;
-                        hit = tempHit;
-                    }
+        if (node.objectIndex != -1) {
+            Object obj = objects[node.objectIndex];
+            Hit tempHit;
+            if (obj.type == TYPE_FACE) {
+                if (hitFace(ray, obj, tMin, closest, tempHit)) {
+                    hitAnything = true;
+                    closest = tempHit.t;
+                    hit = tempHit;
+                }
+            } else if (obj.type == TYPE_SPHERE) {
+                if (hitSphere(ray, obj, tMin, closest, tempHit)) {
+                    hitAnything = true;
+                    closest = tempHit.t;
+                    hit = tempHit;
                 }
             }
         }

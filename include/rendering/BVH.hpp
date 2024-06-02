@@ -4,10 +4,10 @@
 #include <vector>
 
 #include "core/AABB.hpp"
+#include "rendering/BVHNode.hpp"
 
-#include "GpuModel/GpuObject.hpp"
-#include "GpuModel/Vertex.hpp"
-#include "GpuModel/BVHNode.hpp"
+#include "gpumodel/GpuObject.hpp"
+#include "gpumodel/Vertex.hpp"
 
 #include <iostream>
 
@@ -26,7 +26,13 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const BVH &bvh);
 
-  const std::vector<BVHNode> &getBVHNodes() const { return _nodes; }
+  std::vector<GpuBvhNode> getGpuNodes() const {
+    std::vector<GpuBvhNode> gpuNodes;
+    for (const auto &node : _nodes) {
+      gpuNodes.push_back(node.toGpuBvhNode());
+    }
+    return gpuNodes;
+  }
   const std::vector<GpuObject> &getGpuObjects() const { return _gpuObjects; }
 
 private:

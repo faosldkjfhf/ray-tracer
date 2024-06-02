@@ -252,6 +252,6 @@ void SDLGraphicsProgram::initBuffers() {
   _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 1);
   _gpuObjectBuffer.createStorageBuffer(_scene.bvh.getGpuObjects(),
                                        GL_STATIC_DRAW, 2);
-  _bvhBuffer.createStorageBuffer(_scene.bvh.getBVHNodes(), GL_STATIC_DRAW, 3);
+  _bvhBuffer.createStorageBuffer(_scene.bvh.getGpuNodes(), GL_STATIC_DRAW, 3);
   _materialBuffer.createStorageBuffer(_scene.materials, GL_STATIC_DRAW, 4);
 }

@@ -9,8 +9,8 @@
 #include "rendering/Texture.hpp"
 #include "rendering/Shader.hpp"
 
-#include "GpuModel/Material.hpp"
-#include "GpuModel/Vertex.hpp"
+#include "gpumodel/Material.hpp"
+#include "gpumodel/Vertex.hpp"
 
 struct Scene {
   std::vector<Sphere> spheres;

@@ -6,7 +6,7 @@
 #include "rendering/Mesh.hpp"
 #include "rendering/Texture.hpp"
 
-#include "GpuModel/Material.hpp"
+#include "gpumodel/Material.hpp"
 
 #include <string>
 
