@@ -4,39 +4,24 @@
 #include <iostream>
 
 void Scene::update() {
-  gpuTextures.resize(objects.size());
-
   for (int i = 0; i < objects.size(); i++) {
     auto &object = objects[i];
 
     object.transform.computeModelMatrix();
 
-    // Find the objects material index, add to the materials vector if it
-    // doesn't exist
+    // Add the object's material to the materials vector if it doesn't exist
     const auto &material = object.material;
     auto materialIt = std::find(materials.begin(), materials.end(), material);
     if (materialIt == materials.end()) {
       materials.push_back(material);
     }
 
-    // Add all the object's textures
+    // Add the object's textures to the textures vector if they don't exist
     for (auto &texture : object.textures) {
-      uint32_t textureIdx = 0;
       auto textureIt = std::find(textures.begin(), textures.end(), texture);
       if (textureIt == textures.end()) {
-        textureIdx = textures.size();
         textures.push_back(texture);
-      } else {
-        textureIdx = std::distance(textures.begin(), textureIt);
       }
-
-      if (texture.type == Texture::TextureType::DIFFUSE) {
-        gpuTextures[i].diffuseTextureIdx = textureIdx;
-      } else if (texture.type == Texture::TextureType::NORMAL) {
-        gpuTextures[i].normalTextureIdx = textureIdx;
-      }
-      // std::cout << "Texture index: " << textureIdx << " for object " << i
-      //           << std::endl;
     }
   }
 
@@ -46,7 +31,7 @@ void Scene::update() {
     gpuObjects.push_back({{face.v0, face.v1, face.v2, 0.0f},
                           GpuObjectType::Face,
                           face.materialIdx,
-                          face.gpuTextureIdx});
+                          face.textureIndices});
   }
 
   // Add the spheres into the gpuObjects vector
@@ -54,14 +39,15 @@ void Scene::update() {
     // Find the sphere's material index, add to the materials vector if it
     // doesn't exist
     const auto &material = sphere.material;
-    auto materialIt = std::find(materials.begin(), materials.end(), material);
     unsigned int materialIdx = 0;
+    auto materialIt = std::find(materials.begin(), materials.end(), material);
     if (materialIt == materials.end()) {
+      materialIdx = materials.size();
       materials.push_back(material);
-      materialIdx = materials.size() - 1;
     } else {
       materialIdx = std::distance(materials.begin(), materialIt);
     }
+
     gpuObjects.push_back(
         {{sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius},
          GpuObjectType::Sphere,
@@ -112,10 +98,26 @@ std::vector<Face> Scene::getFaces() const {
     }
     uint32_t materialIdx = std::distance(materials.begin(), materialIt);
 
+    // Find the objects texture index
+    glm::ivec2 textureIndices = {-1, -1};
+    for (auto &texture : object.textures) {
+      auto textureIt = std::find(textures.begin(), textures.end(), texture);
+      if (textureIt == textures.end()) {
+        std::cerr << "Texture not found in scene" << std::endl;
+        continue;
+      }
+      uint32_t textureIdx = std::distance(textures.begin(), textureIt);
+      if (texture.type == Texture::TextureType::DIFFUSE) {
+        textureIndices.x = textureIdx;
+      } else if (texture.type == Texture::TextureType::NORMAL) {
+        textureIndices.y = textureIdx;
+      }
+    }
+
     const auto &indices = object.mesh.indices;
     for (size_t i = 0; i < indices.size(); i += 3) {
       faces.push_back({indices[i] + offset, indices[i + 1] + offset,
-                       indices[i + 2] + offset, materialIdx, (uint32_t)i});
+                       indices[i + 2] + offset, materialIdx, textureIndices});
     }
 
     offset += object.mesh.vertices.size();

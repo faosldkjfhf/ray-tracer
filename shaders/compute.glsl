@@ -23,7 +23,7 @@ struct Hit {
     vec3 normal;
     bool frontFace;
     uint materialIdx;
-    int textureIdx; // -1 if no texture
+    ivec2 textureIndices; // Diffuse, Normal, -1 if no texture
 };
 
 struct ONB {
@@ -44,7 +44,7 @@ struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
     uint type; // 0: Triangle/Face, 1: Sphere
     uint materialIdx;
-    uint textureIdx; // strictly speaking, this is just the index of the parent object
+    ivec2 textureIndices; // Diffuse, Normal, -1 if no texture
 };
 
 struct BVHNode {
@@ -66,11 +66,6 @@ struct Material {
     float typeData; // Metal: fuzziness; Glass: refraction index; Light: emission strength
 };
 
-struct TextureIdx {
-    int diffuseTextureIdx; // -1 if no texture
-    int normalTextureIdx; // -1 if no texture
-};
-
 layout(std430, binding = 1) readonly buffer VertexBuffer {
     Vertex vertices[];
 };
@@ -85,10 +80,6 @@ layout(std430, binding = 3) buffer BVHBuffer {
 
 layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
-};
-
-layout(std430, binding = 5) buffer TextureBuffer {
-    TextureIdx texturesIndices[];
 };
 
 layout(binding = 6) uniform sampler2D[10] u_Textures;
@@ -131,6 +122,7 @@ void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
     hit.normal = hit.frontFace ? outwardNormal : -outwardNormal;
 }
 
+// Returns the near and far t values for the ray to intersect the AABB
 vec2 intersectAABB(Ray ray, vec3 boxMin, vec3 boxMax) {
     vec3 tMin = (boxMin - ray.origin) / ray.direction;
     vec3 tMax = (boxMax - ray.origin) / ray.direction;
@@ -166,7 +158,7 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     hit.position = ray.origin + ray.direction * t;
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
     hit.materialIdx = sphere.materialIdx;
-    hit.textureIdx = -1;
+    hit.textureIndices = ivec2(-1);
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
@@ -211,10 +203,15 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     if (triIntersect(ray, face, t, n) && t >= tMin && t <= tMax) {
         hit.t = t;
         hit.position = ray.origin + ray.direction * t;
-        hit.uv = vec2(0.5);
-        hit.normal = normalize(n);
+        hit.uv = vec2(0.5); // TODO: UV mapping
         hit.materialIdx = face.materialIdx;
-        hit.textureIdx = int(face.textureIdx);
+        hit.textureIndices = face.textureIndices;
+        // There is a normal map for this face
+        // if (hit.textureIndices.y != -1) {
+        //     // TODO: Implement normal mapping
+        // } else {
+        hit.normal = normalize(n);
+        // }
         setHitFaceNormal(hit, ray, hit.normal);
         return true;
     }
@@ -222,6 +219,7 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
 }
 
 #define MAX_STACK_SIZE 64
+BVHNode root = bvh[0];
 bool hitBvh(Ray ray, out Hit hit) {
     float tMin = 0.001;
     float tMax = 5000.0;
@@ -325,13 +323,8 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     return true;
 }
 
-vec3 textureColor(int textureIdx, vec2 uv) {
-    TextureIdx texIdx = texturesIndices[textureIdx];
-    if (texIdx.diffuseTextureIdx == -1) {
-        return vec3(1.0);
-    }
-    vec3 diffuseColor = texture(u_Textures[texIdx.diffuseTextureIdx], uv).rgb;
-    return diffuseColor;
+vec3 textureColor(int diffuseIdx, vec2 uv) {
+    return texture(u_Textures[diffuseIdx], uv).rgb;
 }
 
 vec3 rayColor(Ray ray) {
@@ -342,9 +335,9 @@ vec3 rayColor(Ray ray) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
-            if (hit.textureIdx != -1) {
-                // albedo *= textureColor(hit.textureIdx, hit.uv);
-            }
+            // if (hit.textureIndices.x != -1) {
+            //     albedo *= textureColor(hit.textureIndices.x, hit.uv);
+            // }
             finalColor *= albedo;
             if (!scatters) {
                 break;
@@ -366,7 +359,7 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 1
+#define SAMPLES 5
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 

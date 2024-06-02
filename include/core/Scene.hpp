@@ -9,7 +9,6 @@
 #include "rendering/Texture.hpp"
 #include "rendering/Shader.hpp"
 
-#include "GpuModel/GpuTexture.hpp"
 #include "GpuModel/Material.hpp"
 #include "GpuModel/Vertex.hpp"
 
@@ -18,7 +17,6 @@ struct Scene {
   std::vector<Object> objects;
   std::vector<Material> materials;     // All the materials used in the scene
   std::vector<Texture> textures;       // All the textures used in the scene
-  std::vector<GpuTexture> gpuTextures; // Indices to the textures, indexed by object index
   BVH bvh;
 
   void update();
