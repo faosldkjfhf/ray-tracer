@@ -342,9 +342,9 @@ vec3 rayColor(Ray ray) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
-            if (hit.textureIndices.x != -1) {
-                albedo *= texture(u_CubeTexture, hit.uv).rgb;
-            }
+            // if (hit.textureIndices.x != -1) {
+            //     albedo *= texture(u_CubeTexture, hit.uv).rgb;
+            // }
             finalColor *= albedo;
             if (!scatters) {
                 break;

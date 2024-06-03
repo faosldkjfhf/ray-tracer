@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <SDL2/SDL.h>
+
 void Scene::update() {
   for (int i = 0; i < objects.size(); i++) {
     auto &object = objects[i];
@@ -55,7 +57,11 @@ void Scene::update() {
          {-1, -1}});
   }
 
+  // Time how long it takes to build the BVH
+  auto start = SDL_GetTicks();
   bvh.buildBVH(gpuObjects, getVertices());
+  auto end = SDL_GetTicks();
+  std::cout << "BVH build time: " << end - start << "ms" << std::endl;
 }
 
 std::vector<Vertex> Scene::getVertices() const {
