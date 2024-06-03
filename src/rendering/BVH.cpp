@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
+const uint MIN_OBJECTS = 2;
+
 void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
                    const std::vector<Vertex> &vertices) {
   _gpuObjects = gpuObjects;
@@ -11,8 +13,7 @@ void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
   _nodes.resize(size * 2 - 1);
 
   BVHNode &root = _nodes[0];
-  root.leftChild = 0;
-  root.firstObject = 0;
+  root.leftFirst = 0;
   root.numObjects = size;
 
   updateNodeBounds(0, vertices);
@@ -23,7 +24,7 @@ void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
 void BVH::updateNodeBounds(unsigned int nodeIndex,
                            const std::vector<Vertex> &vertices) {
   BVHNode &node = _nodes[nodeIndex];
-  for (int i = node.firstObject; i < node.firstObject + node.numObjects; i++) {
+  for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
     AABB aabb = getAABB(_gpuObjects[i], vertices);
     node.aabbMin = glm::min(node.aabbMin, aabb.min);
     node.aabbMax = glm::max(node.aabbMax, aabb.max);
@@ -34,9 +35,10 @@ void BVH::subdivide(unsigned int nodeIndex,
                     const std::vector<Vertex> &vertices) {
   BVHNode &node = _nodes[nodeIndex];
 
-  if (node.numObjects <= 1)
+  if (node.numObjects <= MIN_OBJECTS)
     return;
 
+  // Find longest axis
   glm::vec3 extent = node.aabbMax - node.aabbMin;
   int axis = 0;
   if (extent.y > extent.x)
@@ -45,8 +47,8 @@ void BVH::subdivide(unsigned int nodeIndex,
     axis = 2;
 
   // Sort objects along axis
-  std::sort(_gpuObjects.begin() + node.firstObject,
-            _gpuObjects.begin() + node.firstObject + node.numObjects,
+  std::sort(_gpuObjects.begin() + node.leftFirst,
+            _gpuObjects.begin() + node.leftFirst + node.numObjects,
             [&](const GpuObject &a, const GpuObject &b) {
               return getAABB(a, vertices).min[axis] <
                      getAABB(b, vertices).min[axis];
@@ -57,14 +59,13 @@ void BVH::subdivide(unsigned int nodeIndex,
   int leftIndex = _nodesUsed++;
   int rightIndex = _nodesUsed++;
 
-  _nodes[leftIndex].firstObject = node.firstObject;
+  _nodes[leftIndex].leftFirst = node.leftFirst;
   _nodes[leftIndex].numObjects = leftCount;
 
-  _nodes[rightIndex].firstObject = node.firstObject + leftCount;
+  _nodes[rightIndex].leftFirst = node.leftFirst + leftCount;
   _nodes[rightIndex].numObjects = node.numObjects - leftCount;
 
-  node.leftChild = leftIndex;
-  node.firstObject = -1;
+  node.leftFirst = leftIndex;
   node.numObjects = 0;
 
   updateNodeBounds(leftIndex, vertices);
@@ -90,17 +91,17 @@ AABB BVH::getAABB(const GpuObject &object,
 }
 
 std::ostream &operator<<(std::ostream &os, const BVH &bvh) {
+  std::cout << "sizeof(BVHNode): " << sizeof(BVHNode) << "\n";
   for (int i = 0; i < bvh._nodes.size(); i++) {
     os << "Node " << i << ":\n";
     os << "  aabbMin: " << bvh._nodes[i].aabbMin.x << " "
        << bvh._nodes[i].aabbMin.y << " " << bvh._nodes[i].aabbMin.z << "\n";
     os << "  aabbMax: " << bvh._nodes[i].aabbMax.x << " "
        << bvh._nodes[i].aabbMax.y << " " << bvh._nodes[i].aabbMax.z << "\n";
-    os << "  leftChild: " << bvh._nodes[i].leftChild << "\n";
-    os << "  firstObject: " << bvh._nodes[i].firstObject << "\n";
+    os << "  leftFirst: " << bvh._nodes[i].leftFirst << "\n";
     os << "  numObjects: " << bvh._nodes[i].numObjects << "\n";
-    for (int j = bvh._nodes[i].firstObject;
-         j < bvh._nodes[i].firstObject + bvh._nodes[i].numObjects; j++) {
+    for (int j = bvh._nodes[i].leftFirst;
+         j < bvh._nodes[i].leftFirst + bvh._nodes[i].numObjects; j++) {
       os << "    Object " << j << ":\n";
       if (bvh._gpuObjects[j].type == GpuObjectType::Face) {
         os << "      Face: " << bvh._gpuObjects[j].data.x << " "

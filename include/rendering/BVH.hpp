@@ -26,13 +26,7 @@ public:
 
   friend std::ostream &operator<<(std::ostream &os, const BVH &bvh);
 
-  std::vector<GpuBvhNode> getGpuNodes() const {
-    std::vector<GpuBvhNode> gpuNodes;
-    for (const auto &node : _nodes) {
-      gpuNodes.push_back(node.toGpuBvhNode());
-    }
-    return gpuNodes;
-  }
+  const std::vector<BVHNode> &getNodes() const { return _nodes; }
   const std::vector<GpuObject> &getGpuObjects() const { return _gpuObjects; }
 
 private:

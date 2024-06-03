@@ -49,9 +49,9 @@ struct Object {
 
 struct BVHNode {
     vec3 aabbMin;
-    int leftChild;
+    uint leftFirst;
     vec3 aabbMax;
-    int objectIndex;
+    uint numObjects;
 };
 
 #define LAMBERTIAN 0
@@ -226,12 +226,12 @@ bool hitBvh(Ray ray, out Hit hit) {
     bool hitAnything = false;
     float closest = tMax;
 
-    int stack[MAX_STACK_SIZE];
-    int stackSize = 0;
+    uint stack[MAX_STACK_SIZE];
+    uint stackSize = 0;
     stack[stackSize++] = 0;
 
     while (stackSize > 0 && stackSize < MAX_STACK_SIZE) {
-        int nodeIdx = stack[--stackSize];
+        uint nodeIdx = stack[--stackSize];
         BVHNode node = bvh[nodeIdx];
 
         vec2 tIntersect = intersectAABB(ray, node.aabbMin, node.aabbMax);
@@ -240,28 +240,28 @@ bool hitBvh(Ray ray, out Hit hit) {
         }
 
         // Check if the node is a leaf
-        if (node.objectIndex != -1) {
-            Object obj = objects[node.objectIndex];
-            Hit tempHit;
-            if (obj.type == TYPE_FACE) {
-                if (hitFace(ray, obj, tMin, closest, tempHit)) {
-                    hitAnything = true;
-                    closest = tempHit.t;
-                    hit = tempHit;
+        if (node.numObjects != 0) {
+            for (int i = 0; i < node.numObjects; i++) {
+                Object obj = objects[node.leftFirst + i];
+                Hit tempHit;
+                bool hitObj = false;
+                if (obj.type == TYPE_SPHERE) {
+                    hitObj = hitSphere(ray, obj, tMin, closest, tempHit);
+                } else if (obj.type == TYPE_FACE) {
+                    hitObj = hitFace(ray, obj, tMin, closest, tempHit);
                 }
-            } else if (obj.type == TYPE_SPHERE) {
-                if (hitSphere(ray, obj, tMin, closest, tempHit)) {
+
+                if (hitObj) {
                     hitAnything = true;
                     closest = tempHit.t;
                     hit = tempHit;
                 }
             }
-
             continue;
         }
 
-        stack[stackSize++] = node.leftChild;
-        stack[stackSize++] = node.leftChild + 1;
+        stack[stackSize++] = node.leftFirst;
+        stack[stackSize++] = node.leftFirst + 1;
 
         // Push the closer node last
         // bool hitLeft = false;
