@@ -51,17 +51,11 @@ void Scene::update() {
     gpuObjects.push_back(
         {{sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius},
          GpuObjectType::Sphere,
-         materialIdx});
+         materialIdx,
+         {-1, -1}});
   }
 
   bvh.buildBVH(gpuObjects, getVertices());
-}
-
-void Scene::bindTextures(const Shader &shader) const {
-  for (size_t i = 0; i < textures.size(); i++) {
-    textures[i].bind(i + 1);
-    // shader.setInt("u_Textures[" + std::to_string(i) + "]", i + 1);
-  }
 }
 
 std::vector<Vertex> Scene::getVertices() const {

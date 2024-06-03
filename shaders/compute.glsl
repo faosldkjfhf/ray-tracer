@@ -81,7 +81,7 @@ layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
 };
 
-layout(binding = 6) uniform sampler2D[10] u_Textures;
+uniform sampler2D u_CubeTexture;
 
 float stepRngFloat(inout uint state) {
     state = state * 747796405 + 2891336453;
@@ -202,7 +202,7 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     if (triIntersect(ray, face, t, n) && t >= tMin && t <= tMax) {
         hit.t = t;
         hit.position = ray.origin + ray.direction * t;
-        hit.uv = vec2(0.5); // TODO: UV mapping
+        hit.uv = vec2(0.0); // TODO: UV mapping
         hit.materialIdx = face.materialIdx;
         hit.textureIndices = face.textureIndices;
         // There is a normal map for this face
@@ -335,10 +335,6 @@ bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
     return true;
 }
 
-vec3 textureColor(int diffuseIdx, vec2 uv) {
-    return texture(u_Textures[diffuseIdx], uv).rgb;
-}
-
 vec3 rayColor(Ray ray) {
     Hit hit;
 
@@ -347,9 +343,9 @@ vec3 rayColor(Ray ray) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
-            // if (hit.textureIndices.x != -1) {
-            //     albedo *= textureColor(hit.textureIndices.x, hit.uv);
-            // }
+            if (hit.textureIndices.x != -1) {
+                albedo *= texture(u_CubeTexture, hit.uv).rgb;
+            }
             finalColor *= albedo;
             if (!scatters) {
                 break;

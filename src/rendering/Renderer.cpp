@@ -29,7 +29,6 @@ Renderer::Renderer(const Window &window)
 
 void Renderer::render(const Scene &scene) const {
   _texture.bind(0);
-  scene.bindTextures(_shader);
 
   _computeShader.use();
   // Pass in scene data as uniforms
@@ -37,6 +36,7 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.setVec3("u_CameraDirection", _camera.getViewDirection());
   _computeShader.setVec3("u_CameraUp", _camera.getUpVector());
   _computeShader.setUInt("u_FrameCount", _frameCount);
+  _computeShader.bindTextures(scene.textures);
 
   glCall(glDispatchCompute((GLuint)_window->getWidth() / 32,
                            (GLuint)_window->getHeight() / 32, 1));

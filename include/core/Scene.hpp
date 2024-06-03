@@ -20,7 +20,6 @@ struct Scene {
   BVH bvh;
 
   void update();
-  void bindTextures(const Shader &shader) const;
   std::vector<Vertex> getVertices() const;
   std::vector<Face> getFaces() const;
 };

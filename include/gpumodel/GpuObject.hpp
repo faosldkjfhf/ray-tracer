@@ -9,5 +9,5 @@ struct GpuObject {
                               // Sphere: center, radius
   GpuObjectType type;
   uint32_t materialIdx;
-  glm::ivec2 textureIndices; // Diffuse, Normal, -1 if no texture
+  glm::ivec2 textureIndices{-1, -1}; // Diffuse, Normal, -1 if no texture
 };
