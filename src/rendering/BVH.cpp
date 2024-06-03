@@ -35,34 +35,53 @@ void BVH::subdivide(unsigned int nodeIndex,
                     const std::vector<Vertex> &vertices) {
   BVHNode &node = _nodes[nodeIndex];
 
-  if (node.numObjects <= MIN_OBJECTS)
+  if (node.numObjects <= MIN_OBJECTS) {
     return;
+  }
 
-  // Find longest axis
-  glm::vec3 extent = node.aabbMax - node.aabbMin;
-  int axis = 0;
-  if (extent.y > extent.x)
-    axis = 1;
-  if (extent.z > extent[axis])
-    axis = 2;
+  // Find best split axis and position
+  int splitAxis = 0;
+  float splitPos = 0.0f, bestCost = INFINITY;
+  for (int axis = 0; axis < 3; axis++) {
+    for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
+      float pos = getCentroid(_gpuObjects[i], vertices)[axis];
+      float cost = evaluateSAH(node, axis, pos, vertices);
+      if (cost < bestCost) {
+        splitAxis = axis;
+        splitPos = pos;
+        bestCost = cost;
+      }
+    }
+  }
 
-  // Sort objects along axis
-  std::sort(_gpuObjects.begin() + node.leftFirst,
-            _gpuObjects.begin() + node.leftFirst + node.numObjects,
-            [&](const GpuObject &a, const GpuObject &b) {
-              return getAABB(a, vertices).min[axis] <
-                     getAABB(b, vertices).min[axis];
-            });
+  // Check if subdivision is worth it
+  AABB nodeAABB{node.aabbMin, node.aabbMax};
+  float nodeArea = nodeAABB.surfaceArea();
+  if (bestCost >= node.numObjects * nodeArea) {
+    return;
+  }
 
-  int leftCount = node.numObjects / 2;
+  // Partition objects
+  int i = node.leftFirst;
+  int j = i + node.numObjects - 1;
+  while (i <= j) {
+    if (getCentroid(_gpuObjects[i], vertices)[splitAxis] < splitPos) {
+      i++;
+    } else {
+      std::swap(_gpuObjects[i], _gpuObjects[j--]);
+    }
+  }
 
+  int leftCount = i - node.leftFirst;
+
+  // Create left and right child nodes
   int leftIndex = _nodesUsed++;
   int rightIndex = _nodesUsed++;
 
   _nodes[leftIndex].leftFirst = node.leftFirst;
   _nodes[leftIndex].numObjects = leftCount;
 
-  _nodes[rightIndex].leftFirst = node.leftFirst + leftCount;
+  _nodes[rightIndex].leftFirst = i;
   _nodes[rightIndex].numObjects = node.numObjects - leftCount;
 
   node.leftFirst = leftIndex;
@@ -72,6 +91,27 @@ void BVH::subdivide(unsigned int nodeIndex,
   updateNodeBounds(rightIndex, vertices);
   subdivide(leftIndex, vertices);
   subdivide(rightIndex, vertices);
+}
+
+float BVH::evaluateSAH(BVHNode &node, int axis, float pos,
+                       const std::vector<Vertex> &vertices) const {
+  AABB leftAABB, rightAABB;
+  int leftCount = 0, rightCount = 0;
+
+  for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
+    glm::vec3 centroid = getCentroid(_gpuObjects[i], vertices);
+    if (centroid[axis] < pos) {
+      leftAABB.extend(getAABB(_gpuObjects[i], vertices));
+      leftCount++;
+    } else {
+      rightAABB.extend(getAABB(_gpuObjects[i], vertices));
+      rightCount++;
+    }
+  }
+
+  float cost =
+      leftCount * leftAABB.surfaceArea() + rightCount * rightAABB.surfaceArea();
+  return cost > 0.0f ? cost : INFINITY;
 }
 
 AABB BVH::getAABB(const GpuObject &object,
@@ -87,6 +127,18 @@ AABB BVH::getAABB(const GpuObject &object,
     glm::vec3 radius = glm::vec3(object.data.w);
     glm::vec3 center = glm::vec3(object.data.x, object.data.y, object.data.z);
     return {center - radius, center + radius};
+  }
+}
+
+glm::vec3 BVH::getCentroid(const GpuObject &object,
+                           const std::vector<Vertex> &vertices) const {
+  if (object.type == GpuObjectType::Face) {
+    glm::vec3 v0 = vertices[object.data.x].position;
+    glm::vec3 v1 = vertices[object.data.y].position;
+    glm::vec3 v2 = vertices[object.data.z].position;
+    return (v0 + v1 + v2) / 3.0f;
+  } else /*  if (object.type == GpuObjectType::Sphere) */ {
+    return glm::vec3(object.data.x, object.data.y, object.data.z);
   }
 }
 

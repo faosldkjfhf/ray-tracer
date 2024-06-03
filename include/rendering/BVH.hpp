@@ -20,9 +20,13 @@ public:
   void updateNodeBounds(unsigned int nodeIndex,
                         const std::vector<Vertex> &vertices);
   void subdivide(unsigned int nodeIndex, const std::vector<Vertex> &vertices);
+  float evaluateSAH(BVHNode &node, int axis, float pos,
+                    const std::vector<Vertex> &vertices) const;
 
   AABB getAABB(const GpuObject &object,
                const std::vector<Vertex> &vertices) const;
+  glm::vec3 getCentroid(const GpuObject &object,
+                        const std::vector<Vertex> &vertices) const;
 
   friend std::ostream &operator<<(std::ostream &os, const BVH &bvh);
 
