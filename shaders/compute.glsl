@@ -234,11 +234,6 @@ bool hitBvh(Ray ray, out Hit hit) {
         uint nodeIdx = stack[--stackSize];
         BVHNode node = bvh[nodeIdx];
 
-        vec2 tIntersect = intersectAABB(ray, node.aabbMin, node.aabbMax);
-        if (tIntersect.y < tIntersect.x) {
-            continue;
-        }
-
         // Check if the node is a leaf
         if (node.numObjects != 0) {
             for (int i = 0; i < node.numObjects; i++) {
@@ -260,21 +255,25 @@ bool hitBvh(Ray ray, out Hit hit) {
             continue;
         }
 
-        stack[stackSize++] = node.leftFirst;
-        stack[stackSize++] = node.leftFirst + 1;
-
         // Push the closer node last
-        // bool hitLeft = false;
-        // vec2 leftIntersect = intersectAABB(ray, bvh[node.leftChild].aabbMin, bvh[node.leftChild].aabbMax);
-        // if (leftIntersect.x < leftIntersect.y) {
-        //     hitLeft = true;
-        // }
-        //
-        // bool hitRight = false;
-        // vec2 rightIntersect = intersectAABB(ray, bvh[node.leftChild + 1].aabbMin, bvh[node.leftChild + 1].aabbMax);
-        // if (rightIntersect.x < rightIntersect.y) {
-        //     hitRight = true;
-        // }
+        vec2 leftIntersect = intersectAABB(ray, bvh[node.leftFirst].aabbMin, bvh[node.leftFirst].aabbMax);
+        vec2 rightIntersect = intersectAABB(ray, bvh[node.leftFirst + 1].aabbMin, bvh[node.leftFirst + 1].aabbMax);
+        bool hitLeft = leftIntersect.x <= leftIntersect.y && leftIntersect.x < closest && leftIntersect.y > 0.0;
+        bool hitRight = rightIntersect.x <= rightIntersect.y && rightIntersect.x < closest && rightIntersect.y > 0.0;
+
+        if (hitLeft && hitRight) {
+            if (leftIntersect.x < rightIntersect.x) {
+                stack[stackSize++] = node.leftFirst + 1;
+                stack[stackSize++] = node.leftFirst;
+            } else {
+                stack[stackSize++] = node.leftFirst;
+                stack[stackSize++] = node.leftFirst + 1;
+            }
+        } else if (hitLeft) {
+            stack[stackSize++] = node.leftFirst;
+        } else if (hitRight) {
+            stack[stackSize++] = node.leftFirst + 1;
+        }
     }
 
     return hitAnything;
