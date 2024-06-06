@@ -31,7 +31,7 @@ void Scene::update() {
   std::vector<GpuObject> gpuObjects;
   for (auto &face : getFaces()) {
     gpuObjects.push_back({{face.v0, face.v1, face.v2, 0.0f},
-                          GpuObjectType::Face,
+                          ObjectType::Face,
                           face.materialIdx,
                           face.textureIndices});
   }
@@ -52,7 +52,7 @@ void Scene::update() {
 
     gpuObjects.push_back(
         {{sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius},
-         GpuObjectType::Sphere,
+         ObjectType::Sphere,
          materialIdx,
          {-1, -1}});
   }

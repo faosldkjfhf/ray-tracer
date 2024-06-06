@@ -7,9 +7,19 @@ const uint MIN_OBJECTS = 2;
 
 void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
                    const std::vector<Vertex> &vertices) {
-  _gpuObjects = gpuObjects;
+  // Convert GpuObjects to BVHObjects
+  _objects.resize(gpuObjects.size());
+  for (int i = 0; i < gpuObjects.size(); i++) {
+    const auto &gpuObject = gpuObjects[i];
+    _objects[i] = {gpuObject.data,
+                   gpuObject.type,
+                   gpuObject.materialIdx,
+                   gpuObject.textureIndices,
+                   getAABB(gpuObject, vertices),
+                   getCentroid(gpuObject, vertices)};
+  }
 
-  auto size = _gpuObjects.size();
+  auto size = _objects.size();
   _nodes.resize(size * 2 - 1);
 
   BVHNode &root = _nodes[0];
@@ -25,7 +35,7 @@ void BVH::updateNodeBounds(unsigned int nodeIndex,
                            const std::vector<Vertex> &vertices) {
   BVHNode &node = _nodes[nodeIndex];
   for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
-    AABB aabb = getAABB(_gpuObjects[i], vertices);
+    AABB aabb = _objects[i].aabb;
     node.aabbMin = glm::min(node.aabbMin, aabb.min);
     node.aabbMax = glm::max(node.aabbMax, aabb.max);
   }
@@ -55,10 +65,10 @@ void BVH::subdivide(unsigned int nodeIndex,
   int i = node.leftFirst;
   int j = i + node.numObjects - 1;
   while (i <= j) {
-    if (getCentroid(_gpuObjects[i], vertices)[splitAxis] < splitPos) {
+    if (_objects[i].centroid[splitAxis] < splitPos) {
       i++;
     } else {
-      std::swap(_gpuObjects[i], _gpuObjects[j--]);
+      std::swap(_objects[i], _objects[j--]);
     }
   }
 
@@ -89,12 +99,12 @@ float BVH::evaluateSAH(const BVHNode &node, int axis, float pos,
   int leftCount = 0, rightCount = 0;
 
   for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
-    glm::vec3 centroid = getCentroid(_gpuObjects[i], vertices);
-    if (centroid[axis] < pos) {
-      leftAABB.extend(getAABB(_gpuObjects[i], vertices));
+    const auto &object = _objects[i];
+    if (object.centroid[axis] < pos) {
+      leftAABB.extend(object.aabb);
       leftCount++;
     } else {
-      rightAABB.extend(getAABB(_gpuObjects[i], vertices));
+      rightAABB.extend(object.aabb);
       rightCount++;
     }
   }
@@ -129,7 +139,7 @@ float BVH::findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
 
 AABB BVH::getAABB(const GpuObject &object,
                   const std::vector<Vertex> &vertices) const {
-  if (object.type == GpuObjectType::Face) {
+  if (object.type == ObjectType::Face) {
     glm::vec3 v0 = vertices[object.data.x].position;
     glm::vec3 v1 = vertices[object.data.y].position;
     glm::vec3 v2 = vertices[object.data.z].position;
@@ -145,7 +155,7 @@ AABB BVH::getAABB(const GpuObject &object,
 
 glm::vec3 BVH::getCentroid(const GpuObject &object,
                            const std::vector<Vertex> &vertices) const {
-  if (object.type == GpuObjectType::Face) {
+  if (object.type == ObjectType::Face) {
     glm::vec3 v0 = vertices[object.data.x].position;
     glm::vec3 v1 = vertices[object.data.y].position;
     glm::vec3 v2 = vertices[object.data.z].position;
@@ -153,6 +163,16 @@ glm::vec3 BVH::getCentroid(const GpuObject &object,
   } else /*  if (object.type == GpuObjectType::Sphere) */ {
     return glm::vec3(object.data.x, object.data.y, object.data.z);
   }
+}
+
+std::vector<GpuObject> BVH::getGpuObjects() const {
+  // Convert from bvh to gpu
+  std::vector<GpuObject> gpuObjects(_objects.size());
+  for (int i = 0; i < _objects.size(); i++) {
+    const auto &bvhObject = _objects[i];
+    gpuObjects[i] = bvhObject;
+  }
+  return gpuObjects;
 }
 
 std::ostream &operator<<(std::ostream &os, const BVH &bvh) {
@@ -168,14 +188,13 @@ std::ostream &operator<<(std::ostream &os, const BVH &bvh) {
     for (int j = bvh._nodes[i].leftFirst;
          j < bvh._nodes[i].leftFirst + bvh._nodes[i].numObjects; j++) {
       os << "    Object " << j << ":\n";
-      if (bvh._gpuObjects[j].type == GpuObjectType::Face) {
-        os << "      Face: " << bvh._gpuObjects[j].data.x << " "
-           << bvh._gpuObjects[j].data.y << " " << bvh._gpuObjects[j].data.z
-           << "\n";
+      if (bvh._objects[j].type == ObjectType::Face) {
+        os << "      Face: " << bvh._objects[j].data.x << " "
+           << bvh._objects[j].data.y << " " << bvh._objects[j].data.z << "\n";
       } else {
-        os << "      Sphere: " << bvh._gpuObjects[j].data.x << " "
-           << bvh._gpuObjects[j].data.y << " " << bvh._gpuObjects[j].data.z
-           << " " << bvh._gpuObjects[j].data.w << "\n";
+        os << "      Sphere: " << bvh._objects[j].data.x << " "
+           << bvh._objects[j].data.y << " " << bvh._objects[j].data.z << " "
+           << bvh._objects[j].data.w << "\n";
       }
     }
   }

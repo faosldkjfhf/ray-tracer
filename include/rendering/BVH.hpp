@@ -4,7 +4,9 @@
 #include <vector>
 
 #include "core/AABB.hpp"
+
 #include "rendering/BVHNode.hpp"
+#include "rendering/BVHObject.hpp"
 
 #include "gpumodel/GpuObject.hpp"
 #include "gpumodel/Vertex.hpp"
@@ -30,13 +32,13 @@ public:
   glm::vec3 getCentroid(const GpuObject &object,
                         const std::vector<Vertex> &vertices) const;
 
-  friend std::ostream &operator<<(std::ostream &os, const BVH &bvh);
-
   const std::vector<BVHNode> &getNodes() const { return _nodes; }
-  const std::vector<GpuObject> &getGpuObjects() const { return _gpuObjects; }
+  std::vector<GpuObject> getGpuObjects() const;
+
+  friend std::ostream &operator<<(std::ostream &os, const BVH &bvh);
 
 private:
   unsigned int _nodesUsed = 1;
   std::vector<BVHNode> _nodes;
-  std::vector<GpuObject> _gpuObjects;
+  std::vector<BVHObject> _objects;
 };
