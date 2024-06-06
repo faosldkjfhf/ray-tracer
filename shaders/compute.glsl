@@ -23,7 +23,7 @@ struct Hit {
     vec3 normal;
     bool frontFace;
     uint materialIdx;
-    ivec2 textureIndices; // Diffuse, Normal, -1 if no texture
+    ivec2 textureId; // Diffuse, Normal, -1 if no texture
 };
 
 struct ONB {
@@ -44,7 +44,7 @@ struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
     uint type; // 0: Triangle/Face, 1: Sphere
     uint materialIdx;
-    ivec2 textureIndices; // Diffuse, Normal, -1 if no texture
+    ivec2 textureId; // Diffuse, Normal, -1 if no texture
 };
 
 struct BVHNode {
@@ -157,7 +157,7 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     hit.position = ray.origin + ray.direction * t;
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
     hit.materialIdx = sphere.materialIdx;
-    hit.textureIndices = ivec2(-1);
+    hit.textureId = ivec2(-1);
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
@@ -202,11 +202,11 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     if (triIntersect(ray, face, t, n) && t >= tMin && t <= tMax) {
         hit.t = t;
         hit.position = ray.origin + ray.direction * t;
-        hit.uv = vec2(0.0); // TODO: UV mapping
+        hit.uv = vec2(0.49, 0.99); // TODO: UV mapping
         hit.materialIdx = face.materialIdx;
-        hit.textureIndices = face.textureIndices;
+        hit.textureId = face.textureId;
         // There is a normal map for this face
-        // if (hit.textureIndices.y != -1) {
+        // if (hit.textureId.y != -1) {
         //     // TODO: Implement normal mapping
         // } else {
         hit.normal = normalize(n);
@@ -342,9 +342,9 @@ vec3 rayColor(Ray ray) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
-            // if (hit.textureIndices.x != -1) {
-            //     albedo *= texture(u_CubeTexture, hit.uv).rgb;
-            // }
+            if (hit.textureId.x != -1) {
+                albedo *= texture(u_CubeTexture, hit.uv).rgb;
+            }
             finalColor *= albedo;
             if (!scatters) {
                 break;

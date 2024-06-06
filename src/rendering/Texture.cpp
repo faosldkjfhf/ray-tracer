@@ -8,9 +8,9 @@ Texture::Texture(const std::string &path, TextureType type)
     : _path(path), type(type) {}
 
 Texture::Texture(int width, int height) {
-  glGenTextures(1, &_id);
+  glGenTextures(1, &id);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, _id);
+  glBindTexture(GL_TEXTURE_2D, id);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -19,14 +19,14 @@ Texture::Texture(int width, int height) {
 
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA,
                GL_FLOAT, NULL);
-  glBindImageTexture(0, _id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+  glBindImageTexture(0, id, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 }
 
-Texture::~Texture() { glDeleteTextures(1, &_id); }
+Texture::~Texture() { glDeleteTextures(1, &id); }
 
 void Texture::loadFromFile() {
-  glGenTextures(1, &_id);
-  glBindTexture(GL_TEXTURE_2D, _id);
+  glGenTextures(1, &id);
+  glBindTexture(GL_TEXTURE_2D, id);
 
   // set the texture wrapping/filtering options (on the currently bound
   // texture object)
@@ -60,7 +60,7 @@ void Texture::loadFromFile() {
 
 void Texture::bind(unsigned int slot) const {
   glActiveTexture(GL_TEXTURE0 + slot);
-  glBindTexture(GL_TEXTURE_2D, _id);
+  glBindTexture(GL_TEXTURE_2D, id);
 }
 
 void Texture::unbind() const { glBindTexture(GL_TEXTURE_2D, 0); }

@@ -8,6 +8,7 @@ class Texture {
 public:
   enum TextureType { DIFFUSE, SPECULAR, NORMAL };
 
+  unsigned int id;
   TextureType type;
 
   Texture() = default;
@@ -16,7 +17,7 @@ public:
   ~Texture();
 
   bool operator==(const Texture &other) const {
-    return _id == other._id && type == other.type && _path == other._path;
+    return id == other.id && type == other.type && _path == other._path;
   }
 
   void loadFromFile();
@@ -24,6 +25,5 @@ public:
   void unbind() const;
 
 private:
-  unsigned int _id;
   std::string _path;
 };

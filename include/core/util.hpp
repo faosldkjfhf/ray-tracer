@@ -3,18 +3,6 @@
 #include <glad/glad.h>
 #include <string>
 
-// vvvvvvvvvvvvvvvvvvv Error Handling Routines vvvvvvvvvvvvvvv
-void GLClearAllErrors();
-
-// Returns true if we have an error
-bool GLCheckErrorStatus(const char *function, int line);
-
-#define GLCheck(x)                                                             \
-  GLClearAllErrors();                                                          \
-  x;                                                                           \
-  GLCheckErrorStatus(#x, __LINE__);
-// ^^^^^^^^^^^^^^^^^^^ Error Handling Routines ^^^^^^^^^^^^^^^
-
 /**
  * LoadShaderAsString takes a filepath as an argument and will read line by line
  * a file and return a string that is meant to be compiled at runtime for a
