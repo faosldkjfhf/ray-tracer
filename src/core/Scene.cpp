@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 void Scene::update() {
   for (int i = 0; i < objects.size(); i++) {
