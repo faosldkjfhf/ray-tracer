@@ -13,6 +13,11 @@
 
 #include <iostream>
 
+struct Bin {
+  AABB aabb;
+  unsigned int numObjects = 0;
+};
+
 class BVH {
 public:
   BVH() = default;
@@ -22,8 +27,10 @@ public:
   void updateNodeBounds(unsigned int nodeIndex,
                         const std::vector<Vertex> &vertices);
   void subdivide(unsigned int nodeIndex, const std::vector<Vertex> &vertices);
+
   float evaluateSAH(const BVHNode &node, int axis, float pos,
                     const std::vector<Vertex> &vertices) const;
+
   float findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
                       const std::vector<Vertex> &vertices) const;
 
@@ -41,4 +48,7 @@ private:
   unsigned int _nodesUsed = 1;
   std::vector<BVHNode> _nodes;
   std::vector<BVHObject> _objects;
+
+  static constexpr uint MIN_OBJECTS = 2;
+  static constexpr uint BIN_COUNT = 101;
 };

@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <iostream>
 
-const uint MIN_OBJECTS = 2;
-
 void BVH::buildBVH(const std::vector<GpuObject> &gpuObjects,
                    const std::vector<Vertex> &vertices) {
   // Convert GpuObjects to BVHObjects
@@ -116,20 +114,55 @@ float BVH::evaluateSAH(const BVHNode &node, int axis, float pos,
 
 float BVH::findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
                          const std::vector<Vertex> &vertices) const {
+  // Find centroid bounds
+  AABB bounds;
+  for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
+    bounds.extend(_objects[i].centroid);
+  }
+
   float bestCost = INFINITY;
   for (int axis = 0; axis < 3; axis++) {
-    float min = node.aabbMin[axis];
-    float max = node.aabbMax[axis];
+    float min = bounds.min[axis];
+    float max = bounds.max[axis];
     if (min == max)
       continue;
-    float scale = (max - min) / 100;
-    for (int i = 1; i < 100; i++) {
-      float pos = min + i * scale;
-      float cost = evaluateSAH(node, axis, pos, vertices);
+
+    // Calculate the bins
+    Bin bins[BIN_COUNT];
+    float scale = BIN_COUNT / (max - min);
+    for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
+      const auto &object = _objects[i];
+      int binIdx =
+          std::min(BIN_COUNT - 1, (uint)((object.centroid[axis] - min) * scale));
+      bins[binIdx].aabb.extend(object.aabb);
+      bins[binIdx].numObjects++;
+    }
+
+    // Calculate number of objects and area for each bin
+    float leftArea[BIN_COUNT - 1], rightArea[BIN_COUNT - 1];
+    int leftCount[BIN_COUNT - 1], rightCount[BIN_COUNT - 1];
+    AABB leftAABB, rightAABB;
+    int leftSum = 0, rightSum = 0;
+    for (int i = 0; i < BIN_COUNT - 1; i++) {
+      leftSum += bins[i].numObjects;
+      leftCount[i] = leftSum;
+      leftAABB.extend(bins[i].aabb);
+      leftArea[i] = leftAABB.surfaceArea();
+
+      rightSum += bins[BIN_COUNT - 1 - i].numObjects;
+      rightCount[BIN_COUNT - 2 - i] = rightSum;
+      rightAABB.extend(bins[BIN_COUNT - 1 - i].aabb);
+      rightArea[BIN_COUNT - 2 - i] = rightAABB.surfaceArea();
+    }
+
+    // Evaluate SAH for each split
+    scale = (max - min) / BIN_COUNT;
+    for (int i = 0; i < BIN_COUNT - 1; i++) {
+      float cost = leftArea[i] * leftCount[i] + rightArea[i] * rightCount[i];
       if (cost < bestCost) {
         bestCost = cost;
         splitAxis = axis;
-        splitPos = pos;
+        splitPos = min + (i + 1) * scale;
       }
     }
   }
