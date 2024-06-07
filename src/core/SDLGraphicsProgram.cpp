@@ -5,7 +5,6 @@
 #include <glm/vec3.hpp>
 #include <iostream>
 
-#include "core/Error.hpp"
 #include "rendering/Renderer.hpp"
 #include "rendering/Window.hpp"
 

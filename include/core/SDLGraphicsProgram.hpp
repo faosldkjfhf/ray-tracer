@@ -14,12 +14,6 @@ public:
 
   void run();
 
-  void getOpenGLVersionInfo();
-
-  void initCornellBox();
-
-  void initBuffers();
-
 private:
   bool _quit = false;
 
@@ -36,7 +30,12 @@ private:
   StorageBuffer _bvhBuffer;
   StorageBuffer _materialBuffer;
 
+  void getOpenGLVersionInfo();
+
   void input(float deltaTime);
   void update(float deltaTime);
   void render() const;
+
+  void initCornellBox();
+  void initBuffers();
 };

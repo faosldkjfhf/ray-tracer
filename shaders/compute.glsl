@@ -23,7 +23,7 @@ struct Hit {
     vec3 normal;
     bool frontFace;
     uint materialIdx;
-    ivec2 textureId; // Diffuse, Normal, -1 if no texture
+    ivec2 textureIds; // Diffuse, Normal, -1 if no texture
 };
 
 struct ONB {
@@ -44,7 +44,7 @@ struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
     uint type; // 0: Triangle/Face, 1: Sphere
     uint materialIdx;
-    ivec2 textureId; // Diffuse, Normal, -1 if no texture
+    ivec2 textureIds; // Diffuse, Normal, -1 if no texture
 };
 
 struct BVHNode {
@@ -157,7 +157,7 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     hit.position = ray.origin + ray.direction * t;
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
     hit.materialIdx = sphere.materialIdx;
-    hit.textureId = ivec2(-1);
+    hit.textureIds = ivec2(-1);
     setHitFaceNormal(hit, ray, hit.normal);
     return true;
 }
@@ -204,9 +204,9 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
         hit.position = ray.origin + ray.direction * t;
         hit.uv = vec2(0.49, 0.99); // TODO: UV mapping
         hit.materialIdx = face.materialIdx;
-        hit.textureId = face.textureId;
+        hit.textureIds = face.textureIds;
         // There is a normal map for this face
-        // if (hit.textureId.y != -1) {
+        // if (hit.textureIds.y != -1) {
         //     // TODO: Implement normal mapping
         // } else {
         hit.normal = normalize(n);
@@ -296,7 +296,7 @@ float reflectance(float cosine, float refIdx) {
     return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
-bool scatter(Hit hit, inout vec3 albedo, inout Ray scattered) {
+bool scatter(Hit hit, out vec3 albedo, inout Ray scattered) {
     albedo = materials[hit.materialIdx].albedo;
     scattered.origin = hit.position;
 
@@ -342,7 +342,7 @@ vec3 rayColor(Ray ray) {
         if (hitBvh(ray, hit)) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
-            if (hit.textureId.x != -1) {
+            if (hit.textureIds.x != -1) {
                 albedo *= texture(u_CubeTexture, hit.uv).rgb;
             }
             finalColor *= albedo;

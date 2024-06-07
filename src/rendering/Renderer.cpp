@@ -48,6 +48,8 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.setVec3("u_CameraUp", _camera.getUpVector());
   _computeShader.setUInt("u_FrameCount", _frameCount);
   // _computeShader.bindTextures(scene.textures);
+  _cubeTexture.bind(1);
+  _computeShader.setInt("u_CubeTexture", 1);
 
   glDispatchCompute((GLuint)_window->getWidth() / 32,
                     (GLuint)_window->getHeight() / 32, 1);
