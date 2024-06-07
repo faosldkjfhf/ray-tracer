@@ -234,16 +234,17 @@ void SDLGraphicsProgram::initCornellBox() {
   // _scene.spheres.push_back({{369.5f, 250.0f, -169.0f},
   //                           80.0f,
   //                           Material::metal(glm::vec3(1.0f), 0.0f)});
-  _scene.spheres.push_back(
-      {{186.5f, 420.0f, -351.25f}, 90.0f, Material::metal()});
+  _scene.spheres.emplace_back(glm::vec3(186.5f, 420.0f, -351.25f), 90.0f,
+                              Material::metal());
 
-  // Object bunny("res/models/bunny/bunny_centered_fixed.obj");
-  // bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
-  // bunny.transform.setScale(100.0f, 100.0f, 100.0f);
-  // _scene.objects.push_back(bunny);
+  Object &bunny =
+      _scene.objects.emplace_back("res/models/bunny/bunny_centered_fixed.obj");
+  bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
+  bunny.transform.setScale(100.0f, 100.0f, 100.0f);
 
   // Textured cube
-  Object& texturedCube = _scene.objects.emplace_back("res/models/textured_cube/cube.obj");
+  Object &texturedCube =
+      _scene.objects.emplace_back("res/models/textured_cube/cube.obj");
   texturedCube.transform.setPosition(369.5f, 250.0f, -200.0f);
   texturedCube.transform.setScale(50.0f, 50.0f, 50.0f);
   texturedCube.transform.setRotation(45.0f, 45.0f, 0.0f);
