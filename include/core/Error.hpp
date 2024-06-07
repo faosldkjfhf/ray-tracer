@@ -3,31 +3,88 @@
 #include <glad/glad.h>
 #include <iostream>
 
-// This assert inserts a breakpoint in your code!
-// That way we can get the line number and file.
-// #define ASSERT(x) if(!(x)) __debugbreak(); (__debugbreak() is only available
-// on MSVC)
-#define glCall(x)                                                              \
-  glClearErrorStates();                                                        \
-  x;                                                                           \
-  glCheckError(#x, __LINE__);
+namespace err {
+// Callback function for OpenGL debug messages
+static void APIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id,
+                                   GLenum severity, GLsizei length,
+                                   const GLchar *message,
+                                   const void *userParam) {
+  // Ignore non-significant error/warning codes
+  if (id == 131169 || id == 131185 || id == 131218 || id == 131204)
+    return;
 
-// New error handling routine
-static void glClearErrorStates() {
-  // Return all of the errors that occur.
-  while (glGetError() != GL_NO_ERROR) {
-    ;
+  std::cout << "---------------" << std::endl;
+  std::cout << "Debug message (" << id << "): " << message << std::endl;
+
+  switch (source) {
+  case GL_DEBUG_SOURCE_API:
+    std::cout << "Source: API";
+    break;
+  case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+    std::cout << "Source: Window System";
+    break;
+  case GL_DEBUG_SOURCE_SHADER_COMPILER:
+    std::cout << "Source: Shader Compiler";
+    break;
+  case GL_DEBUG_SOURCE_THIRD_PARTY:
+    std::cout << "Source: Third Party";
+    break;
+  case GL_DEBUG_SOURCE_APPLICATION:
+    std::cout << "Source: Application";
+    break;
+  case GL_DEBUG_SOURCE_OTHER:
+    std::cout << "Source: Other";
+    break;
   }
+  std::cout << std::endl;
+
+  switch (type) {
+  case GL_DEBUG_TYPE_ERROR:
+    std::cout << "Type: Error";
+    break;
+  case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+    std::cout << "Type: Deprecated Behaviour";
+    break;
+  case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+    std::cout << "Type: Undefined Behaviour";
+    break;
+  case GL_DEBUG_TYPE_PORTABILITY:
+    std::cout << "Type: Portability";
+    break;
+  case GL_DEBUG_TYPE_PERFORMANCE:
+    std::cout << "Type: Performance";
+    break;
+  case GL_DEBUG_TYPE_MARKER:
+    std::cout << "Type: Marker";
+    break;
+  case GL_DEBUG_TYPE_PUSH_GROUP:
+    std::cout << "Type: Push Group";
+    break;
+  case GL_DEBUG_TYPE_POP_GROUP:
+    std::cout << "Type: Pop Group";
+    break;
+  case GL_DEBUG_TYPE_OTHER:
+    std::cout << "Type: Other";
+    break;
+  }
+  std::cout << std::endl;
+
+  switch (severity) {
+  case GL_DEBUG_SEVERITY_HIGH:
+    std::cout << "Severity: high";
+    break;
+  case GL_DEBUG_SEVERITY_MEDIUM:
+    std::cout << "Severity: medium";
+    break;
+  case GL_DEBUG_SEVERITY_LOW:
+    std::cout << "Severity: low";
+    break;
+  case GL_DEBUG_SEVERITY_NOTIFICATION:
+    std::cout << "Severity: notification";
+    break;
+  }
+  std::cout << std::endl;
+  std::cout << std::endl;
 }
 
-// Returns false if an error occurs
-static bool glCheckError(const char *function, int line) {
-  while (GLenum error = glGetError()) {
-    // __LINE__ is a special preprocessor macro that
-    // Can tell us what line any errors occurred on.
-    std::cout << "[OpenGL Error]" << error << "|" << function
-              << " Line: " << line << "\n";
-    return false;
-  }
-  return true;
-}
+} // namespace err

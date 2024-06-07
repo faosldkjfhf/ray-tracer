@@ -27,11 +27,8 @@ int main(int argc, char *args[])
             << "Escape - Quit\n";*/
 
   Window window(1600, 900);
-  glCheckError("Window", 17);
   Renderer renderer(window);
-  glCheckError("Renderer", 19);
   SDLGraphicsProgram graphicsProgram(&window, &renderer);
-  glCheckError("SDLGraphicsProgram", 21);
 
   graphicsProgram.run();
 

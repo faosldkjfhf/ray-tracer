@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Camera.hpp"
+#include "core/Error.hpp"
 #include "core/Scene.hpp"
 
 #include "rendering/Mesh.hpp"
@@ -18,13 +19,12 @@ public:
 
   void render(const Scene &scene) const;
 
-  // void updateScene(const Scene &scene);
-
-  void flipPolygonMode();
-
   Camera &getCamera() { return _camera; }
-  void setFrameCount(const int &frameCount) { _frameCount = frameCount; }
-  int getFrameCount() const { return _frameCount; }
+
+  void incrementFrameCount() { _frameCount++; }
+  void resetFrameCount() { _frameCount = 0; }
+
+  void flipDebug() { _debug = !_debug; }
 
 private:
   Camera _camera;
@@ -37,6 +37,10 @@ private:
   VertexBufferLayout _screenQuadLayout;
   Texture _texture;
 
+  // Debugging
+  bool _debug = false;
+  Texture _cubeTexture;
+  GLuint _debugFBO = 0;
+
   const Window *_window;
-  GLenum _polygonMode = GL_FILL;
 };

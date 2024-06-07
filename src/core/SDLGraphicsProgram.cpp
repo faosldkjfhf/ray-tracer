@@ -20,6 +20,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
   int mouseX = _window->getWidth() / 2;
   float moveSpeed = 500.0f * deltaTime;
   Camera &camera = _renderer->getCamera();
+  bool shouldResetFrame = false;
 
   // Event handler that handles various events in SDL
   // that are related to input and output
@@ -42,7 +43,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
       mouseX = e.motion.x;
       mouseY = e.motion.y;
       camera.mouseLook(mouseX, mouseY);
-      _renderer->setFrameCount(0);
+      shouldResetFrame = true;
     default:
       break;
     }
@@ -55,33 +56,36 @@ void SDLGraphicsProgram::input(float deltaTime) {
   // Update our position of the camera
   if (state[SDL_SCANCODE_W]) {
     camera.moveForward(moveSpeed);
-    _renderer->setFrameCount(0);
+    shouldResetFrame = true;
   }
   if (state[SDL_SCANCODE_S]) {
     camera.moveBackward(moveSpeed);
-    _renderer->setFrameCount(0);
+    shouldResetFrame = true;
   }
   if (state[SDL_SCANCODE_A]) {
     camera.moveLeft(moveSpeed);
-    _renderer->setFrameCount(0);
+    shouldResetFrame = true;
   }
   if (state[SDL_SCANCODE_D]) {
     camera.moveRight(moveSpeed);
-    _renderer->setFrameCount(0);
+    shouldResetFrame = true;
   }
   if (state[SDL_SCANCODE_SPACE]) {
     camera.moveUp(moveSpeed);
-    _renderer->setFrameCount(0);
+    shouldResetFrame = true;
   }
   if (state[SDL_SCANCODE_Q]) {
     camera.moveDown(moveSpeed);
-    _renderer->setFrameCount(0);
+    shouldResetFrame = true;
   }
 
-  // Toggle polygon mode
   if (state[SDL_SCANCODE_TAB]) {
-    SDL_Delay(200);
-    _renderer->flipPolygonMode();
+    _renderer->flipDebug();
+    SDL_Delay(100);
+  }
+
+  if (shouldResetFrame) {
+    _renderer->resetFrameCount();
   }
 
   _lastTime = SDL_GetTicks();
@@ -91,12 +95,11 @@ void SDLGraphicsProgram::update(float deltaTime) {}
 
 void SDLGraphicsProgram::render() const {
   _renderer->render(_scene);
-  _renderer->setFrameCount(_renderer->getFrameCount() + 1);
+  _renderer->incrementFrameCount();
 }
 
 void SDLGraphicsProgram::run() {
   getOpenGLVersionInfo();
-  // std::cout << _scene.bvh << std::endl;
 
   _vertexBuffer.bind();
   _gpuObjectBuffer.bind();
@@ -110,14 +113,10 @@ void SDLGraphicsProgram::run() {
     Uint32 delta = std::max((Uint32)1, currentTime - _lastTime);
     _lastTime = currentTime;
 
-    glCheckError("run", 126);
-
     float deltaTime = delta / 1000.0f;
     input(deltaTime);
     update(deltaTime);
     render();
-
-    glCheckError("run", 132);
 
     if (frameCount > 100) {
       std::cout << "FPS: " << 1000.0f / delta << std::endl;

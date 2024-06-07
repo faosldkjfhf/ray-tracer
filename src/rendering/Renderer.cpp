@@ -1,14 +1,17 @@
 #include "rendering/Renderer.hpp"
 
 #include "core/Error.hpp"
-#include "glad/glad.h"
 #include "rendering/Window.hpp"
+
+#include "glad/glad.h"
 
 Renderer::Renderer(const Window &window)
     : _camera(window.getWidth(), window.getHeight()),
       _shader("shaders/vert.glsl", "shaders/frag.glsl"),
       _computeShader("shaders/compute.glsl"),
-      _texture(window.getWidth(), window.getHeight()), _window(&window) {
+      _texture(window.getWidth(), window.getHeight()), _window(&window),
+      _cubeTexture("res/models/textured_cube/cube.ppm",
+                   Texture::TextureType::DIFFUSE) {
   std::vector<MeshVertex> vertices = {
       {{-1, -1, 0}, {0, 0}, {0, 0, 1}},
       {{1, -1, 0}, {1, 0}, {0, 0, 1}},
@@ -25,6 +28,14 @@ Renderer::Renderer(const Window &window)
   _shader.use();
   _screenQuadLayout.bind();
   _texture.bind(0);
+
+  // Create debug FBO and attach the texture to it
+  _cubeTexture.loadFromFile();
+  glGenFramebuffers(1, &_debugFBO);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, _debugFBO);
+  glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                         GL_TEXTURE_2D, _cubeTexture.id, 0);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
 void Renderer::render(const Scene &scene) const {
@@ -38,19 +49,22 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.setUInt("u_FrameCount", _frameCount);
   // _computeShader.bindTextures(scene.textures);
 
-  glCall(glDispatchCompute((GLuint)_window->getWidth() / 32,
-                           (GLuint)_window->getHeight() / 32, 1));
+  glDispatchCompute((GLuint)_window->getWidth() / 32,
+                    (GLuint)_window->getHeight() / 32, 1);
   glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  glPolygonMode(GL_FRONT_AND_BACK, _polygonMode);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
   // Render the screen quad
   _shader.use();
   glDrawElements(GL_TRIANGLES, _screenQuad.indices.size(), GL_UNSIGNED_INT,
                  nullptr);
-}
 
-void Renderer::flipPolygonMode() {
-  _polygonMode = _polygonMode == GL_FILL ? GL_LINE : GL_FILL;
+  if (_debug) {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _debugFBO);
+    glBlitFramebuffer(0, 0, 920, 500, 0, 0, _window->getWidth(),
+                      _window->getHeight(), GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  }
 }
