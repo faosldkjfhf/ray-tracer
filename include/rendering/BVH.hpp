@@ -50,5 +50,5 @@ private:
   std::vector<BVHObject> _objects;
 
   static constexpr uint MIN_OBJECTS = 2;
-  static constexpr uint BIN_COUNT = 101;
+  static constexpr uint BIN_COUNT = 16;
 };

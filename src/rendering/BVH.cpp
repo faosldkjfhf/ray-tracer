@@ -41,7 +41,7 @@ void BVH::updateNodeBounds(unsigned int nodeIndex,
 
 void BVH::subdivide(unsigned int nodeIndex,
                     const std::vector<Vertex> &vertices) {
-  BVHNode &node = _nodes[nodeIndex];
+  BVHNode &node = _nodes.at(nodeIndex);
 
   if (node.numObjects <= MIN_OBJECTS) {
     return;
@@ -132,8 +132,8 @@ float BVH::findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
     float scale = BIN_COUNT / (max - min);
     for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
       const auto &object = _objects[i];
-      int binIdx =
-          std::min(BIN_COUNT - 1, (uint)((object.centroid[axis] - min) * scale));
+      int binIdx = std::min(BIN_COUNT - 1,
+                            (uint)((object.centroid[axis] - min) * scale));
       bins[binIdx].aabb.extend(object.aabb);
       bins[binIdx].numObjects++;
     }

@@ -20,8 +20,7 @@ private:
   // Stored to prevent a large delta time after delays
   Uint32 _lastTime;
 
-  Window *_window;
-  Renderer *_renderer;
+  bool _mouseCaptured = false;
 
   Scene _scene;
 
@@ -30,6 +29,9 @@ private:
   StorageBuffer _bvhBuffer;
   StorageBuffer _materialBuffer;
 
+  Window *_window;
+  Renderer *_renderer;
+
   void getOpenGLVersionInfo();
 
   void input(float deltaTime);
@@ -37,5 +39,6 @@ private:
   void render() const;
 
   void initCornellBox();
+  void initObjects();
   void initBuffers();
 };

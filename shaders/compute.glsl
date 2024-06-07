@@ -269,8 +269,12 @@ bool hitBvh(Ray ray, out Hit hit) {
         // Push the closer node last
         vec2 leftIntersect = intersectAABB(ray, bvh[node.leftFirst].aabbMin, bvh[node.leftFirst].aabbMax);
         vec2 rightIntersect = intersectAABB(ray, bvh[node.leftFirst + 1].aabbMin, bvh[node.leftFirst + 1].aabbMax);
-        bool hitLeft = leftIntersect.x <= leftIntersect.y && leftIntersect.x < closest && leftIntersect.y > 0.0;
-        bool hitRight = rightIntersect.x <= rightIntersect.y && rightIntersect.x < closest && rightIntersect.y > 0.0;
+        bool hitLeft = leftIntersect.x <= leftIntersect.y
+                && leftIntersect.x < closest
+                && leftIntersect.y > 0.0;
+        bool hitRight = rightIntersect.x <= rightIntersect.y
+                && rightIntersect.x < closest
+                && rightIntersect.y > 0.0;
 
         if (hitLeft && hitRight) {
             if (leftIntersect.x < rightIntersect.x) {
