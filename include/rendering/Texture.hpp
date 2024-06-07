@@ -8,11 +8,11 @@ class Texture {
 public:
   enum TextureType { DIFFUSE, SPECULAR, NORMAL };
 
-  unsigned int id;
+  unsigned int id = 0;
   TextureType type;
 
   Texture() = default;
-  Texture(const std::string &path, TextureType type);
+  Texture(const std::string &path, TextureType type) : _path(path), type(type) {};
   Texture(int width, int height);
   ~Texture();
 

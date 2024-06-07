@@ -11,7 +11,11 @@
 SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
     : _window(window), _renderer(renderer) {
   initCornellBox();
+  _scene.update();
   initBuffers();
+
+  if (_scene.textures.size() > 0)
+    _renderer->createDebugFBO(_scene.textures[0].id);
 };
 
 void SDLGraphicsProgram::input(float deltaTime) {
@@ -181,7 +185,7 @@ void SDLGraphicsProgram::initCornellBox() {
   _scene.objects.push_back(quadObj);
 
   // Light
-  quadObj.material = Material::light();
+  quadObj.material = Material::light(25.0f);
   quadObj.transform.setPosition(277.5f, 554.0f, -277.5f);
   quadObj.transform.setRotation(90.0f, 0.0f, 0.0f);
   quadObj.transform.setScale(130.0f, 105.0f, 1.0f);
@@ -223,6 +227,9 @@ void SDLGraphicsProgram::initCornellBox() {
   cubeObj.transform.setScale(165.0f, 330.0f, 165.0f);
   _scene.objects.push_back(cubeObj);
 
+  // Move the camera
+  _renderer->getCamera().setPosition(277.5f, 277.5f, 800.0f);
+
   // Add some objects
   // _scene.spheres.push_back({{369.5f, 250.0f, -169.0f},
   //                           80.0f,
@@ -230,24 +237,19 @@ void SDLGraphicsProgram::initCornellBox() {
   _scene.spheres.push_back(
       {{186.5f, 420.0f, -351.25f}, 90.0f, Material::metal()});
 
-  Object bunny("res/models/bunny/bunny_centered_fixed.obj");
-  bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
-  bunny.transform.setScale(100.0f, 100.0f, 100.0f);
-  _scene.objects.push_back(bunny);
+  // Object bunny("res/models/bunny/bunny_centered_fixed.obj");
+  // bunny.transform.setPosition(369.5f, 215.0f, -169.0f);
+  // bunny.transform.setScale(100.0f, 100.0f, 100.0f);
+  // _scene.objects.push_back(bunny);
 
   // Textured cube
-  // Object texturedCube("res/models/textured_cube/cube.obj");
-  // texturedCube.transform.setPosition(369.5f, 215.0f, -169.0f);
-  // texturedCube.transform.setScale(50.0f, 50.0f, 50.0f);
-  // _scene.objects.push_back(texturedCube);
-
-  // Update the camera
-  _renderer->getCamera().setPosition(277.5f, 277.5f, 800.0f);
+  Object& texturedCube = _scene.objects.emplace_back("res/models/textured_cube/cube.obj");
+  texturedCube.transform.setPosition(369.5f, 250.0f, -200.0f);
+  texturedCube.transform.setScale(50.0f, 50.0f, 50.0f);
+  texturedCube.transform.setRotation(45.0f, 45.0f, 0.0f);
 }
 
 void SDLGraphicsProgram::initBuffers() {
-  _scene.update();
-
   _vertexBuffer.createStorageBuffer(_scene.getVertices(), GL_STATIC_DRAW, 1);
   _gpuObjectBuffer.createStorageBuffer(_scene.bvh.getGpuObjects(),
                                        GL_STATIC_DRAW, 2);

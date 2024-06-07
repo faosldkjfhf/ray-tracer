@@ -22,8 +22,8 @@ public:
   Object(const Mesh &mesh, const Material mat) : mesh(mesh), material(mat) {}
   Object(const std::string &filename) {
     ObjLoader::loadMesh(filename, mesh, textures);
-    // for (auto &texture : textures) {
-    //   texture.loadFromFile();
-    // }
+    for (auto &texture : textures) {
+      texture.loadFromFile();
+    }
   }
 };

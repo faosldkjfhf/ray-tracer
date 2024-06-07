@@ -17,13 +17,13 @@ struct Ray {
 };
 
 struct Hit {
-    float t;
     vec3 position;
+    float t;
+    ivec2 textureIds; // Diffuse, Normal, -1 if no texture
     vec2 uv;
     vec3 normal;
-    bool frontFace;
     uint materialIdx;
-    ivec2 textureIds; // Diffuse, Normal, -1 if no texture
+    bool frontFace;
 };
 
 struct ONB {
@@ -81,7 +81,7 @@ layout(std430, binding = 4) buffer MaterialBuffer {
     Material materials[];
 };
 
-uniform sampler2D u_CubeTexture;
+uniform sampler2D u_DiffuseTexture;
 
 float stepRngFloat(inout uint state) {
     state = state * 747796405 + 2891336453;
@@ -155,6 +155,7 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
 
     hit.t = t;
     hit.position = ray.origin + ray.direction * t;
+    // TODO: UV mapping
     hit.normal = (hit.position - sphere.data.xyz) / sphere.data.w;
     hit.materialIdx = sphere.materialIdx;
     hit.textureIds = ivec2(-1);
@@ -162,7 +163,9 @@ bool hitSphere(Ray ray, Object sphere, float tMin, float tMax, out Hit hit) {
     return true;
 }
 
-bool triIntersect(Ray ray, Object face, out float t, out vec3 n) {
+// Returns true if the ray intersects the triangle
+// and the tuv values (t and barycentric coords) and the normal
+bool triIntersect(Ray ray, Object face, out vec3 tuv, out vec3 n) {
     // Moller-Trumbore algorithm
     vec3 v0 = vertices[int(face.data.x)].position;
     vec3 v1 = vertices[int(face.data.y)].position;
@@ -191,20 +194,28 @@ bool triIntersect(Ray ray, Object face, out float t, out vec3 n) {
         return false;
     }
 
-    t = dot(b, qvec) * idet;
+    tuv.x = dot(b, qvec) * idet;
+    tuv.y = u;
+    tuv.z = v;
 
     return true;
 }
 
 bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
-    float t = 0.0;
-    vec3 n = vec3(0.0);
-    if (triIntersect(ray, face, t, n) && t >= tMin && t <= tMax) {
-        hit.t = t;
-        hit.position = ray.origin + ray.direction * t;
-        hit.uv = vec2(0.49, 0.99); // TODO: UV mapping
+    vec3 tuv;
+    vec3 n;
+    if (triIntersect(ray, face, tuv, n) && tuv.x >= tMin && tuv.x <= tMax) {
+        hit.t = tuv.x;
+        hit.position = ray.origin + ray.direction * tuv.x;
+        // hit.uv = tuv.yz;
         hit.materialIdx = face.materialIdx;
         hit.textureIds = face.textureIds;
+        if (hit.textureIds.x != -1) {
+            vec2 uv0 = vertices[int(face.data.x)].texCoord;
+            vec2 uv1 = vertices[int(face.data.y)].texCoord;
+            vec2 uv2 = vertices[int(face.data.z)].texCoord;
+            hit.uv = uv0 * (1.0 - tuv.y - tuv.z) + uv1 * tuv.y + uv2 * tuv.z;
+        }
         // There is a normal map for this face
         // if (hit.textureIds.y != -1) {
         //     // TODO: Implement normal mapping
@@ -343,7 +354,7 @@ vec3 rayColor(Ray ray) {
             vec3 albedo;
             bool scatters = scatter(hit, albedo, ray);
             if (hit.textureIds.x != -1) {
-                albedo *= texture(u_CubeTexture, hit.uv).rgb;
+                albedo = texture(u_DiffuseTexture, hit.uv).rgb;
             }
             finalColor *= albedo;
             if (!scatters) {

@@ -1,6 +1,5 @@
 #include "rendering/Renderer.hpp"
 
-#include "core/Error.hpp"
 #include "rendering/Window.hpp"
 
 #include "glad/glad.h"
@@ -9,9 +8,7 @@ Renderer::Renderer(const Window &window)
     : _camera(window.getWidth(), window.getHeight()),
       _shader("shaders/vert.glsl", "shaders/frag.glsl"),
       _computeShader("shaders/compute.glsl"),
-      _texture(window.getWidth(), window.getHeight()), _window(&window),
-      _cubeTexture("res/models/textured_cube/cube.ppm",
-                   Texture::TextureType::DIFFUSE) {
+      _texture(window.getWidth(), window.getHeight()), _window(&window) {
   std::vector<MeshVertex> vertices = {
       {{-1, -1, 0}, {0, 0}, {0, 0, 1}},
       {{1, -1, 0}, {1, 0}, {0, 0, 1}},
@@ -28,14 +25,6 @@ Renderer::Renderer(const Window &window)
   _shader.use();
   _screenQuadLayout.bind();
   _texture.bind(0);
-
-  // Create debug FBO and attach the texture to it
-  _cubeTexture.loadFromFile();
-  glGenFramebuffers(1, &_debugFBO);
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, _debugFBO);
-  glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                         GL_TEXTURE_2D, _cubeTexture.id, 0);
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
 void Renderer::render(const Scene &scene) const {
@@ -47,9 +36,7 @@ void Renderer::render(const Scene &scene) const {
   _computeShader.setVec3("u_CameraDirection", _camera.getViewDirection());
   _computeShader.setVec3("u_CameraUp", _camera.getUpVector());
   _computeShader.setUInt("u_FrameCount", _frameCount);
-  // _computeShader.bindTextures(scene.textures);
-  _cubeTexture.bind(1);
-  _computeShader.setInt("u_CubeTexture", 1);
+  _computeShader.bindTextures(scene.textures, 1);
 
   glDispatchCompute((GLuint)_window->getWidth() / 32,
                     (GLuint)_window->getHeight() / 32, 1);
@@ -63,10 +50,19 @@ void Renderer::render(const Scene &scene) const {
   glDrawElements(GL_TRIANGLES, _screenQuad.indices.size(), GL_UNSIGNED_INT,
                  nullptr);
 
-  if (_debug) {
+  if (_debug && _debugFBO) {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _debugFBO);
-    glBlitFramebuffer(0, 0, 920, 500, 0, 0, _window->getWidth(),
-                      _window->getHeight(), GL_COLOR_BUFFER_BIT, GL_LINEAR);
+    glBlitFramebuffer(0, 0, _window->getWidth(), _window->getHeight(), 0, 0,
+                      _window->getWidth(), _window->getHeight(),
+                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
   }
+}
+
+void Renderer::createDebugFBO(unsigned int textureID) {
+  glGenFramebuffers(1, &_debugFBO);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, _debugFBO);
+  glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                         GL_TEXTURE_2D, textureID, 0);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }

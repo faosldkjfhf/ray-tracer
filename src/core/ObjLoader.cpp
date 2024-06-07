@@ -274,7 +274,7 @@ bool ObjLoader::loadMtl(const std::string &filename,
       } else if (token == "map_Bump") {
         type = Texture::TextureType::NORMAL;
       }
-      out_textures.push_back(Texture(texturePath, type));
+      out_textures.emplace_back(texturePath, type);
     }
   }
 

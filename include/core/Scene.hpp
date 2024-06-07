@@ -7,7 +7,6 @@
 #include "rendering/BVH.hpp"
 #include "rendering/Sphere.hpp"
 #include "rendering/Texture.hpp"
-#include "rendering/Shader.hpp"
 
 #include "gpumodel/Material.hpp"
 #include "gpumodel/Vertex.hpp"

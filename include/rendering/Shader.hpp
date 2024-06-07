@@ -10,7 +10,7 @@
 
 class Shader {
 public:
-  unsigned int id;
+  unsigned int id = 0;
 
   Shader() = default;
   Shader(const std::string &vertexPath, const std::string &fragmentPath);

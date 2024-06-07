@@ -4,9 +4,6 @@
 
 #include <glad/glad.h>
 
-Texture::Texture(const std::string &path, TextureType type)
-    : _path(path), type(type) {}
-
 Texture::Texture(int width, int height) {
   glGenTextures(1, &id);
   glActiveTexture(GL_TEXTURE0);

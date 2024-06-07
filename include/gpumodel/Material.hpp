@@ -38,6 +38,15 @@ struct Material {
     return Material{color, MaterialType::METAL, fuzziness};
   }
 
+  static Material metal(float fuzziness) {
+    return Material{glm::vec3(1.0f), MaterialType::METAL, fuzziness};
+  }
+
+  static Material dielectric(const glm::vec3 &color = glm::vec3(1.0f),
+                             float refractionIndex = 1.5f) {
+    return Material{color, MaterialType::DIELECTRIC, refractionIndex};
+  }
+
   static Material dielectric(float refractionIndex) {
     return Material{glm::vec3(1.0f), MaterialType::DIELECTRIC, refractionIndex};
   }
@@ -45,5 +54,9 @@ struct Material {
   static Material light(glm::vec3 color = glm::vec3(1.0f),
                         float intensity = 15.0f) {
     return Material{color, MaterialType::LIGHT, intensity};
+  }
+
+  static Material light(float intensity) {
+    return Material{glm::vec3(1.0f), MaterialType::LIGHT, intensity};
   }
 };

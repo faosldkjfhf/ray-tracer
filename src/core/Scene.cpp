@@ -19,7 +19,7 @@ void Scene::update() {
     }
 
     // Add the object's textures to the textures vector if they don't exist
-    for (auto &texture : object.textures) {
+    for (const auto &texture : object.textures) {
       auto textureIt = std::find(textures.begin(), textures.end(), texture);
       if (textureIt == textures.end()) {
         textures.push_back(texture);

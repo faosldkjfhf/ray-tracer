@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/Camera.hpp"
-#include "core/Error.hpp"
 #include "core/Scene.hpp"
 
 #include "rendering/Mesh.hpp"
@@ -26,6 +25,8 @@ public:
 
   void flipDebug() { _debug = !_debug; }
 
+  void createDebugFBO(unsigned int textureID);
+
 private:
   Camera _camera;
   uint _frameCount = 0;
@@ -39,7 +40,6 @@ private:
 
   // Debugging
   bool _debug = false;
-  Texture _cubeTexture;
   GLuint _debugFBO = 0;
 
   const Window *_window;
