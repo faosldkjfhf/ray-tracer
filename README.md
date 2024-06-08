@@ -8,15 +8,22 @@ Justin Liu and Kevin Liu
 
 - [x] Spheres
 - [x] Triangles
-- [ ] Materials
+- [X] Materials
   - [x] Diffuse
-  - [ ] Metal
-  - [ ] Glass
+  - [X] Metal
+  - [X] Glass
   - [x] Light
+- [ ] Textures
+    - [X] Basic Texture
+    - [ ] Multiple Textures
+    - [ ] Normal Maps
 - [x] BVH
 - [x] Load OBJs
 - [x] Move around with camera
-- [ ] Adjust camera angle
-- [ ] Accumulator Texture
+- [X] Adjust camera angle
+- [X] Accumulator Texture
 - [ ] Optimize (!!)
-  - [ ] Better partitioning for BVH (SAH)
+  - [X] Better partitioning for BVH (SAH)
+  - [X] Fast building BVH
+- [ ] Switch to Vulkan
+      - [ ] Incorporate Ray Tracing Cores
