@@ -4,6 +4,9 @@
 
 #include "glad/glad.h"
 
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+
 Renderer::Renderer(const Window &window)
     : _camera(window.getWidth(), window.getHeight()),
       _shader("shaders/vert.glsl", "shaders/frag.glsl"),
@@ -57,6 +60,10 @@ void Renderer::render(const Scene &scene) const {
                       GL_COLOR_BUFFER_BIT, GL_LINEAR);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
   }
+
+  // Render ImGui
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void Renderer::createDebugFBO(unsigned int textureID) {

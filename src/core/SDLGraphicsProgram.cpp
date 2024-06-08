@@ -8,6 +8,10 @@
 #include "rendering/Renderer.hpp"
 #include "rendering/Window.hpp"
 
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl3.h"
+
 SDLGraphicsProgram::SDLGraphicsProgram(Window *window, Renderer *renderer)
     : _window(window), _renderer(renderer) {
   initCornellBox();
@@ -32,6 +36,7 @@ void SDLGraphicsProgram::input(float deltaTime) {
   SDL_Event e;
   // Handle events on queue
   while (SDL_PollEvent(&e) != 0) {
+    ImGui_ImplSDL3_ProcessEvent(&e);
     switch (e.type) {
     case SDL_EVENT_QUIT:
       std::cout << "Goodbye!" << std::endl;
@@ -110,9 +115,18 @@ void SDLGraphicsProgram::input(float deltaTime) {
   _lastTime = SDL_GetTicks();
 }
 
-void SDLGraphicsProgram::update(float deltaTime) {}
+void SDLGraphicsProgram::update(float deltaTime) {
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplSDL3_NewFrame();
+  ImGui::NewFrame();
+}
 
 void SDLGraphicsProgram::render() const {
+  // render imgui window
+  // TODO: Abstract out later?
+  ImGui::Begin("Ray Tracer", NULL, ImGuiWindowFlags_None);
+  ImGui::End();
+
   _renderer->render(_scene);
   _renderer->incrementFrameCount();
 }

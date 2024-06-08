@@ -5,7 +5,7 @@ import platform
 # (1)==================== COMMON CONFIGURATION OPTIONS ======================= #
 COMPILER="g++ -std=c++17"   # The compiler we want to use
                                 #(You may try g++ if you have trouble)
-SOURCE="./src/*.cpp ./src/core/*.cpp ./src/glad/*.cpp ./src/rendering/*.cpp"    # Where the source code lives
+SOURCE="./src/*.cpp ./src/core/*.cpp ./src/glad/*.cpp ./src/rendering/*.cpp ./thirdparty/imgui/*.cpp ./thirdparty/imgui/backends/imgui_impl_sdl3.cpp ./thirdparty/imgui/backends/imgui_impl_opengl3.cpp"    # Where the source code lives
 EXECUTABLE="project"        # Name of the final executable
 # ======================= COMMON CONFIGURATION OPTIONS ======================= #
 
@@ -17,7 +17,7 @@ LIBRARIES=""            # What libraries do we want to include
 
 if platform.system()=="Linux":
     ARGUMENTS="-D LINUX" # -D is a #define sent to preprocessor
-    INCLUDE_DIR="-I ./include/ -I ./../common/thirdparty/glm/"
+    INCLUDE_DIR="-I ./include/ -I ./include/glm -I./thirdparty/imgui/ -I./thirdparty/imgui/backends/"
     LIBRARIES="-ldl `pkg-config --libs --cflags sdl3`"
 elif platform.system()=="Darwin":
     ARGUMENTS="-D MAC" # -D is a #define sent to the preprocessor.

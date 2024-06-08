@@ -5,6 +5,10 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_impl_sdl3.h"
+
 #include <iostream>
 
 Window::Window(int width, int height, const std::string &title)
@@ -56,6 +60,16 @@ Window::Window(int width, int height, const std::string &title)
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr,
                           GL_TRUE);
   }
+
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+
+  // Setup ImGui backends
+  ImGui_ImplSDL3_InitForOpenGL(_window, _context);
+  ImGui_ImplOpenGL3_Init();
 }
 
 Window::~Window() {
