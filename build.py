@@ -18,7 +18,7 @@ LIBRARIES=""            # What libraries do we want to include
 if platform.system()=="Linux":
     ARGUMENTS="-D LINUX" # -D is a #define sent to preprocessor
     INCLUDE_DIR="-I ./include/ -I ./include/glm -I./thirdparty/imgui/ -I./thirdparty/imgui/backends/"
-    LIBRARIES="-ldl `pkg-config --libs --cflags sdl3`"
+    LIBRARIES="-ldl `pkg-config sdl3 --libs --cflags`"
 elif platform.system()=="Darwin":
     ARGUMENTS="-D MAC" # -D is a #define sent to the preprocessor.
     INCLUDE_DIR="-I ./include/ -I/Library/Frameworks/SDL2.framework/Headers -I./../common/thirdparty/old/glm"
@@ -26,9 +26,9 @@ elif platform.system()=="Darwin":
 elif platform.system()=="Windows":
     COMPILER="g++ -std=c++17" # Note we use g++ here as it is more likely what you have
     ARGUMENTS="-D MINGW -std=c++17 -static-libgcc -static-libstdc++"
-    INCLUDE_DIR="-I./../SDL/include -I./include/ -I./../common/thirdparty/old/glm/"
+    INCLUDE_DIR="-I ./include -I ./include/glm -I./thirdparty/imgui/ -I./thirdparty/imgui/backends/"
     EXECUTABLE="project.exe"
-    LIBRARIES="-L./../build/ -lSDL3 -mwindows"
+    LIBRARIES="-L./../build/ -lSDL3 -mwindows -ldl"
 # (2)=================== Platform specific configuration ===================== #
 
 # (3)====================== Building the Executable ========================== #
