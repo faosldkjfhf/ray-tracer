@@ -28,7 +28,7 @@ elif platform.system()=="Windows":
     ARGUMENTS="-D MINGW -std=c++17 -static-libgcc -static-libstdc++"
     INCLUDE_DIR="-I ./include -I ./include/glm -I./thirdparty/imgui/ -I./thirdparty/imgui/backends/"
     EXECUTABLE="project.exe"
-    LIBRARIES="-L./../build/ -lSDL3 -mwindows -ldl"
+    LIBRARIES="-L./../build/ -lSDL3 -mwindows -ldl `pkg-config sdl3 --libs --cflags`"
 # (2)=================== Platform specific configuration ===================== #
 
 # (3)====================== Building the Executable ========================== #
