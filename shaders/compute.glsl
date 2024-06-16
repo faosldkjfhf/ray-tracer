@@ -385,6 +385,9 @@ ONB createONB(vec3 vec, vec3 up) {
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
 
+    int sqrtSamples = int(sqrt(float(SAMPLES)));
+    double recipSqrtSamples = 1.0 / sqrtSamples;
+
     float vfov = 40.0;
     float theta = vfov * PI / 180.0;
     float h = tan(theta / 2.0);
@@ -410,15 +413,17 @@ void main() {
 
     // anti-aliasing
     vec3 colorAccumulator = vec3(0.0);
-    for (int i = 0; i < SAMPLES; i++) {
-        vec2 offset = vec2(rand(-0.5, 0.5), rand(-0.5, 0.5));
-        vec2 sampleUv = uv + offset / imageSize;
-        Ray ray;
-        ray.origin = origin;
-        ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
-        ray.direction = normalize(ray.direction);
-        // Get the color of the pixel at where the ray intersects the scene
-        colorAccumulator += rayColor(ray);
+    for (int i = 0; i < sqrtSamples; i++) {
+        for (int j = 0; j < sqrtSamples; j++) {
+            vec2 offset = vec2((i + rand()) * recipSqrtSamples - 0.5, (j + rand()) * recipSqrtSamples - 0.5);
+            vec2 sampleUv = uv + offset / imageSize;
+            Ray ray;
+            ray.origin = origin;
+            ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
+            ray.direction = normalize(ray.direction);
+            // Get the color of the pixel at where the ray intersects the scene
+            colorAccumulator += rayColor(ray);
+        }
     }
 
     vec3 pixelColor = colorAccumulator / SAMPLES;

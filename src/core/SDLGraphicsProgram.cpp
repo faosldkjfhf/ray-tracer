@@ -122,11 +122,6 @@ void SDLGraphicsProgram::update(float deltaTime) {
 }
 
 void SDLGraphicsProgram::render() const {
-  // render imgui window
-  // TODO: Abstract out later?
-  ImGui::Begin("Ray Tracer", NULL, ImGuiWindowFlags_None);
-  ImGui::End();
-
   _renderer->render(_scene);
   _renderer->incrementFrameCount();
 }
@@ -140,7 +135,6 @@ void SDLGraphicsProgram::run() {
   _materialBuffer.bind();
 
   _lastTime = SDL_GetTicks();
-  int frameCount = 0;
   while (!_quit) {
     Uint32 currentTime = SDL_GetTicks();
     Uint32 delta = std::max((Uint32)1, currentTime - _lastTime);
@@ -149,14 +143,14 @@ void SDLGraphicsProgram::run() {
     float deltaTime = delta / 1000.0f;
     input(deltaTime);
     update(deltaTime);
-    render();
 
-    if (frameCount > 100) {
-      std::cout << "FPS: " << 1000.0f / delta << std::endl;
-      frameCount = 0;
-    } else {
-      frameCount++;
-    }
+    // render imgui window
+    // TODO: Abstract out later?
+    ImGui::Begin("Ray Tracer", NULL, ImGuiWindowFlags_None);
+    ImGui::Text("FPS: %.2f", 1000.0f / delta);
+    ImGui::End();
+
+    render();
 
     _window->swapBuffers();
   }
