@@ -26,4 +26,4 @@ Justin Liu and Kevin Liu
   - [X] Better partitioning for BVH (SAH)
   - [X] Fast building BVH
 - [ ] Switch to Vulkan
-      - [ ] Incorporate Ray Tracing Cores
+  - [ ] Incorporate Ray Tracing Cores
