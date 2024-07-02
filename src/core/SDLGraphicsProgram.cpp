@@ -209,7 +209,7 @@ void SDLGraphicsProgram::initCornellBox() {
   _scene.objects.push_back(quadObj);
 
   // Light
-  quadObj.material = Material::light(25.0f);
+  quadObj.material = Material::light();
   quadObj.transform.setPosition(277.5f, 554.0f, -277.5f);
   quadObj.transform.setRotation(90.0f, 0.0f, 0.0f);
   quadObj.transform.setScale(130.0f, 105.0f, 1.0f);
@@ -257,9 +257,8 @@ void SDLGraphicsProgram::initCornellBox() {
 
 void SDLGraphicsProgram::initObjects() {
   // Add some spheres
-  // _scene.spheres.push_back({{369.5f, 250.0f, -169.0f},
-  //                           80.0f,
-  //                           Material::metal(glm::vec3(1.0f), 0.0f)});
+  // _scene.spheres.push_back(
+  //     {{369.5f, 250.0f, -169.0f}, 80.0f, Material::dielectric()});
   _scene.spheres.push_back(
       {{186.5f, 420.0f, -351.25f}, 90.0f, Material::metal()});
 

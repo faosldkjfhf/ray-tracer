@@ -28,9 +28,6 @@ public:
                         const std::vector<Vertex> &vertices);
   void subdivide(unsigned int nodeIndex, const std::vector<Vertex> &vertices);
 
-  float evaluateSAH(const BVHNode &node, int axis, float pos,
-                    const std::vector<Vertex> &vertices) const;
-
   float findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
                       const std::vector<Vertex> &vertices) const;
 

@@ -91,27 +91,6 @@ void BVH::subdivide(unsigned int nodeIndex,
   subdivide(rightIndex, vertices);
 }
 
-float BVH::evaluateSAH(const BVHNode &node, int axis, float pos,
-                       const std::vector<Vertex> &vertices) const {
-  AABB leftAABB, rightAABB;
-  int leftCount = 0, rightCount = 0;
-
-  for (int i = node.leftFirst; i < node.leftFirst + node.numObjects; i++) {
-    const auto &object = _objects[i];
-    if (object.centroid[axis] < pos) {
-      leftAABB.extend(object.aabb);
-      leftCount++;
-    } else {
-      rightAABB.extend(object.aabb);
-      rightCount++;
-    }
-  }
-
-  float cost =
-      leftCount * leftAABB.surfaceArea() + rightCount * rightAABB.surfaceArea();
-  return cost > 0.0f ? cost : INFINITY;
-}
-
 float BVH::findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
                          const std::vector<Vertex> &vertices) const {
   // Find centroid bounds

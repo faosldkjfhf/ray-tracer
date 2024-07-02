@@ -41,9 +41,9 @@ struct Vertex {
 
 struct Object {
     vec4 data; // Sphere: center, radius; Face: v0, v1, v2, empty
-    uint type; // 0: Triangle/Face, 1: Sphere
+    uint type;
     uint materialIdx;
-    ivec2 textureIds; // Diffuse, Normal, -1 if no texture
+    ivec2 textureIds; // vec2(diffuse, normal); -1 if no texture
 };
 
 struct BVHNode {
@@ -54,14 +54,13 @@ struct BVHNode {
 };
 
 #define LAMBERTIAN 0
-#define METAL 1
-#define DIELECTRIC 2
-#define LIGHT 3
+#define DIELECTRIC 1
+#define LIGHT 2
 
 struct Material {
     vec3 albedo;
     uint type;
-    float typeData; // Metal: fuzziness; Glass: refraction index; Light: emission strength
+    float typeData; // Lambert: smoothness; Dielectric: refraction index
 };
 
 layout(std430, binding = 1) readonly buffer VertexBuffer {
@@ -115,6 +114,12 @@ vec3 randomUnitVector() {
 vec3 randomOnHemisphere(vec3 normal) {
     vec3 dir = randomUnitVector();
     return dir * sign(dot(dir, normal));
+}
+
+vec2 randomInUnitCircle() {
+    float theta = 2.0 * PI * rand();
+    float rho = sqrt(rand());
+    return vec2(cos(theta), sin(theta)) * rho;
 }
 
 void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
@@ -318,20 +323,21 @@ bool scatter(Hit hit, out vec3 albedo, inout Ray scattered) {
 
     uint type = materials[hit.materialIdx].type;
     if (type == LIGHT) {
-        albedo *= materials[hit.materialIdx].typeData;
         return false;
     }
 
     if (type == LAMBERTIAN) {
-        scattered.direction = hit.normal + randomUnitVector();
+        // lerp between scatter and reflect based on smoothness
+        vec3 scatterComp = hit.normal + randomUnitVector();
         if (length(scattered.direction) < 0.0001) {
-            scattered.direction = hit.normal;
+            scatterComp = hit.normal;
+        } else {
+            scatterComp = normalize(scatterComp);
         }
-    } else if (type == METAL) {
-        scattered.direction = normalize(reflect(scattered.direction, hit.normal)) +
-                materials[hit.materialIdx].typeData * randomUnitVector();
-        return dot(scattered.direction, hit.normal) > 0.0;
-    } else if (type == DIELECTRIC) {
+        vec3 reflectComp = reflect(scattered.direction, hit.normal);
+        scattered.direction = mix(scatterComp, reflectComp, materials[hit.materialIdx].typeData);
+    } else {
+        // Dielectric
         float refractionIndex = materials[hit.materialIdx].typeData;
         float ri = hit.frontFace ? 1.0 / refractionIndex : refractionIndex;
         float cosTheta = min(dot(-scattered.direction, hit.normal), 1.0);
@@ -351,7 +357,8 @@ bool scatter(Hit hit, out vec3 albedo, inout Ray scattered) {
 }
 
 #define MAX_BOUNCES 10
-vec3 rayColor(Ray ray) {
+vec3 rayColor(Ray
+    ray) {
     Hit hit;
 
     vec3 finalColor = vec3(1.0);
@@ -383,12 +390,9 @@ ONB createONB(vec3 vec, vec3 up) {
     return onb;
 }
 
-#define SAMPLES 5
+#define SAMPLES 4
 void main() {
     vec2 imageSize = vec2(imageSize(imgOutput));
-
-    int sqrtSamples = int(sqrt(float(SAMPLES)));
-    double recipSqrtSamples = 1.0 / sqrtSamples;
 
     float vfov = 40.0;
     float theta = vfov * PI / 180.0;
@@ -414,18 +418,30 @@ void main() {
     vec2 uv = (gl_GlobalInvocationID.xy) / imageSize.xy;
 
     // anti-aliasing
+    int sqrtSamples = int(sqrt(float(SAMPLES)));
+    double recipSqrtSamples = 1.0 / sqrtSamples;
     vec3 colorAccumulator = vec3(0.0);
-    for (int i = 0; i < sqrtSamples; i++) {
-        for (int j = 0; j < sqrtSamples; j++) {
-            vec2 offset = vec2((i + rand()) * recipSqrtSamples - 0.5, (j + rand()) * recipSqrtSamples - 0.5);
-            vec2 sampleUv = uv + offset / imageSize;
-            Ray ray;
-            ray.origin = origin;
-            ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
-            ray.direction = normalize(ray.direction);
-            // Get the color of the pixel at where the ray intersects the scene
-            colorAccumulator += rayColor(ray);
-        }
+    // for (int i = 0; i < sqrtSamples; i++) {
+    //     for (int j = 0; j < sqrtSamples; j++) {
+    //         vec2 offset = vec2((i + rand()) * recipSqrtSamples - 0.5, (j + rand()) * recipSqrtSamples - 0.5);
+    //         vec2 sampleUv = uv + offset / imageSize;
+    //         Ray ray;
+    //         ray.origin = origin;
+    //         ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
+    //         ray.direction = normalize(ray.direction);
+    //         // Get the color of the pixel at where the ray intersects the scene
+    //         colorAccumulator += rayColor(ray);
+    //     }
+    // }
+    for (int i = 0; i < SAMPLES; i++) {
+        vec2 offset = randomInUnitCircle() * 0.5;
+        vec2 sampleUv = uv + offset / imageSize;
+        Ray ray;
+        ray.origin = origin;
+        ray.direction = upperLeftCorner + sampleUv.x * horizontal + sampleUv.y * vertical - origin;
+        ray.direction = normalize(ray.direction);
+        // Get the color of the pixel at where the ray intersects the scene
+        colorAccumulator += rayColor(ray);
     }
 
     vec3 pixelColor = colorAccumulator / SAMPLES;
