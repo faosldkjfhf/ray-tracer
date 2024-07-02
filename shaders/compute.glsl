@@ -3,7 +3,6 @@
 layout(local_size_x = 32, local_size_y = 32, local_size_z = 1) in;
 
 #define PI 3.14159265358979323846
-#define MAX_BOUNCES 10
 
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 layout(location = 0) uniform vec3 u_CameraPosition;
@@ -99,21 +98,23 @@ float rand(float min, float max) {
     return min + (max - min) * rand();
 }
 
-vec3 randomOnUnitSphere() {
-    vec3 p = vec3(rand(-1.0, 1.0), rand(-1.0, 1.0), rand(-1.0, 1.0));
-    return normalize(p);
-}
-
-vec3 randomOnHemisphere(vec3 normal) {
-    vec3 inSphere = randomOnUnitSphere();
-    return dot(inSphere, normal) > 0.0 ? inSphere : -inSphere;
-}
-
 // Random value in normal distribution with mean 0 and standard deviation 1
 float randomNormalDistribution() {
     float theta = 2.0 * PI * rand();
     float rho = sqrt(-2.0 * log(rand()));
     return rho * cos(theta);
+}
+
+vec3 randomUnitVector() {
+    float x = randomNormalDistribution();
+    float y = randomNormalDistribution();
+    float z = randomNormalDistribution();
+    return normalize(vec3(x, y, z));
+}
+
+vec3 randomOnHemisphere(vec3 normal) {
+    vec3 dir = randomUnitVector();
+    return dir * sign(dot(dir, normal));
 }
 
 void setHitFaceNormal(inout Hit hit, Ray ray, vec3 outwardNormal) {
@@ -207,7 +208,6 @@ bool hitFace(Ray ray, Object face, float tMin, float tMax, out Hit hit) {
     if (triIntersect(ray, face, tuv, n) && tuv.x >= tMin && tuv.x <= tMax) {
         hit.t = tuv.x;
         hit.position = ray.origin + ray.direction * tuv.x;
-        // hit.uv = tuv.yz;
         hit.materialIdx = face.materialIdx;
         hit.textureIds = face.textureIds;
         if (hit.textureIds.x != -1) {
@@ -266,7 +266,7 @@ bool hitBvh(Ray ray, out Hit hit) {
             continue;
         }
 
-        // Push the closer node last
+        // Push the closer node last so that we check it first
         vec2 leftIntersect = intersectAABB(ray, bvh[node.leftFirst].aabbMin, bvh[node.leftFirst].aabbMax);
         vec2 rightIntersect = intersectAABB(ray, bvh[node.leftFirst + 1].aabbMin, bvh[node.leftFirst + 1].aabbMax);
         bool hitLeft = leftIntersect.x <= leftIntersect.y
@@ -311,6 +311,7 @@ float reflectance(float cosine, float refIdx) {
     return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
+// Returns true if the ray scatters
 bool scatter(Hit hit, out vec3 albedo, inout Ray scattered) {
     albedo = materials[hit.materialIdx].albedo;
     scattered.origin = hit.position;
@@ -322,13 +323,13 @@ bool scatter(Hit hit, out vec3 albedo, inout Ray scattered) {
     }
 
     if (type == LAMBERTIAN) {
-        scattered.direction = hit.normal + randomOnUnitSphere();
+        scattered.direction = hit.normal + randomUnitVector();
         if (length(scattered.direction) < 0.0001) {
             scattered.direction = hit.normal;
         }
     } else if (type == METAL) {
         scattered.direction = normalize(reflect(scattered.direction, hit.normal)) +
-                materials[hit.materialIdx].typeData * randomOnUnitSphere();
+                materials[hit.materialIdx].typeData * randomUnitVector();
         return dot(scattered.direction, hit.normal) > 0.0;
     } else if (type == DIELECTRIC) {
         float refractionIndex = materials[hit.materialIdx].typeData;
@@ -349,6 +350,7 @@ bool scatter(Hit hit, out vec3 albedo, inout Ray scattered) {
     return true;
 }
 
+#define MAX_BOUNCES 10
 vec3 rayColor(Ray ray) {
     Hit hit;
 
