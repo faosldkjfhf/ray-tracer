@@ -103,7 +103,7 @@ float BVH::findBestSplit(const BVHNode &node, int &splitAxis, float &splitPos,
   for (int axis = 0; axis < 3; axis++) {
     float min = bounds.min[axis];
     float max = bounds.max[axis];
-    if (min == max)
+    if (fabs(min - max) < 0.0001f)
       continue;
 
     // Calculate the bins

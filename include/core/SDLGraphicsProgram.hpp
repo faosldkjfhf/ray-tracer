@@ -40,5 +40,6 @@ private:
 
   void initCornellBox();
   void initObjects();
+
   void initBuffers();
 };
